@@ -1,0 +1,326 @@
+
+.ad-form-page {
+  min-height: 100%;
+  padding: 28px;
+  background: #f6f7fb;
+  color: #20243a;
+}
+
+.ad-form-header {
+  margin-bottom: 23px;
+}
+
+.ad-form-header h1 {
+  margin: 16px 0 6px;
+  color: #20243a;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.ad-form-header p {
+  margin: 0;
+  color: #85899b;
+  font-size: 13px;
+}
+
+.ad-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #68719e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ad-back-btn:hover {
+  color: #252b50;
+}
+
+.ad-form-card {
+  max-width: 1050px;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #e9eaf0;
+  border-radius: 12px;
+}
+
+.ad-form-section {
+  margin-bottom: 25px;
+}
+
+.ad-form-section h2 {
+  margin: 0 0 6px;
+  color: #252b50;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ad-form-section > p {
+  margin: 0 0 21px;
+  color: #9296a5;
+  font-size: 12px;
+}
+
+.ad-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 19px;
+}
+
+.ad-form-field label {
+  color: #444960;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ad-form-field input,
+.ad-form-field select,
+.ad-form-field textarea {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 13px;
+  border: 1px solid #e2e4ed;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  color: #353a53;
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ad-form-field input:focus,
+.ad-form-field select:focus,
+.ad-form-field textarea:focus {
+  border-color: #737cae;
+  box-shadow: 0 0 0 3px rgba(115, 124, 174, 0.1);
+}
+
+.ad-form-field input::placeholder,
+.ad-form-field textarea::placeholder {
+  color: #b0b3bf;
+}
+
+.ad-form-field small {
+  color: #9296a5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ad-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ad-form-divider {
+  height: 1px;
+  margin: 25px 0;
+  background: #eff0f4;
+}
+
+.ad-image-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 13px;
+  border: 1px dashed #dfe1eb;
+  border-radius: 8px;
+  background: #fafaff;
+}
+
+.ad-image-preview span {
+  color: #626982;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ad-image-preview img {
+  width: 100%;
+  max-width: 360px;
+  max-height: 180px;
+  object-fit: contain;
+  object-position: left center;
+  border-radius: 6px;
+}
+
+.ad-device-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ad-device-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 130px;
+  padding: 13px 15px;
+  border: 1px solid #e5e7ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #444960;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ad-device-option:hover {
+  border-color: #aeb4d4;
+  background: #fafaff;
+}
+
+.ad-device-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #343c6b;
+  cursor: pointer;
+}
+
+.ad-active-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  padding: 14px 16px;
+  border: 1px solid #e5e7ef;
+  border-radius: 8px;
+  background: #fafaff;
+  cursor: pointer;
+}
+
+.ad-active-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #343c6b;
+  cursor: pointer;
+}
+
+.ad-active-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ad-active-toggle strong {
+  color: #353a53;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ad-active-toggle small {
+  color: #9296a5;
+  font-size: 11px;
+}
+
+.ad-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid #eff0f4;
+}
+
+.ad-cancel-btn,
+.ad-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ad-cancel-btn {
+  border: 1px solid #e1e3ec;
+  background: #fff;
+  color: #555b70;
+}
+
+.ad-cancel-btn:hover {
+  background: #f5f6fa;
+}
+
+.ad-submit-btn {
+  border: 1px solid #252b50;
+  background: #252b50;
+  color: #fff;
+}
+
+.ad-submit-btn:hover:not(:disabled) {
+  background: #353d6c;
+}
+
+.ad-submit-btn:disabled,
+.ad-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ad-form-loading {
+  padding: 70px 20px;
+  text-align: center;
+  color: #85899b;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .ad-form-page {
+    padding: 20px;
+  }
+
+  .ad-form-card {
+    padding: 21px;
+  }
+}
+
+@media (max-width: 550px) {
+  .ad-form-page {
+    padding: 14px;
+  }
+
+  .ad-form-header h1 {
+    font-size: 21px;
+  }
+
+  .ad-form-card {
+    padding: 17px;
+  }
+
+  .ad-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .ad-device-options {
+    flex-direction: column;
+  }
+
+  .ad-device-option {
+    width: 100%;
+  }
+
+  .ad-form-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .ad-cancel-btn,
+  .ad-submit-btn {
+    width: 100%;
+  }
+}

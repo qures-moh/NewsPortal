@@ -1,0 +1,45 @@
+.advertisement-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.advertisement-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: #777;
+}
+
+.advertisement-label {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.advertisement-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-width: 576px) {
+  .advertisement-section {
+    margin: 14px 0;
+    gap: 12px;
+  }
+
+  .advertisement-image {
+    max-height: 130px;
+  }
+}

@@ -1,0 +1,132 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+  color: #172033;
+  background: #f6f7fb;
+
+  --primary: #253b80;
+  --primary-dark: #1b2d63;
+  --primary-light: #eef1fc;
+
+  --text-primary: #172033;
+  --text-secondary: #647087;
+  --text-muted: #929bad;
+
+  --border: #e6e9f0;
+  --background: #f6f7fb;
+  --white: #ffffff;
+
+  --success: #16845b;
+  --danger: #d64545;
+  --warning: #c58a22;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 2px 8px rgba(20, 35, 70, 0.04);
+  --shadow-md: 0 8px 24px rgba(20, 35, 70, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--background);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+ul {
+  list-style: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(37, 59, 128, 0.3);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #dce3ff;
+  color: #172033;
+}
+
+/* Form validation utilities */
+.field-error-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--danger, #d64545);
+  font-size: 0.785rem;
+  margin-top: 0.35rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.field-error-text svg {
+  flex-shrink: 0;
+}
+
+.input-has-error,
+input.has-field-error,
+textarea.has-field-error,
+select.has-field-error {
+  border-color: var(--danger, #d64545) !important;
+  background-color: #fffbfa !important;
+}
+
+.input-has-error:focus,
+input.has-field-error:focus,
+textarea.has-field-error:focus,
+select.has-field-error:focus {
+  outline: none !important;
+  border-color: var(--danger, #d64545) !important;
+  box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.15) !important;
+}
+
+.field-required-mark {
+  color: var(--danger, #d64545);
+  margin-left: 2px;
+  font-weight: bold;
+}
