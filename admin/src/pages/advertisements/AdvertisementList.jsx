@@ -328,10 +328,14 @@ const AdvertisementList = () => {
 
                       <td>
                         <span className="ad-placement">
-                          {ad.placement?.page}
+                          {ad.pages && ad.pages.length > 0
+                            ? ad.pages.join(", ")
+                            : ad.placement?.page}
                         </span>
                         <small className="ad-subtext">
-                          {ad.placement?.position}
+                          {ad.positions && ad.positions.length > 0
+                            ? ad.positions.join(", ")
+                            : ad.placement?.position}
                         </small>
                       </td>
 

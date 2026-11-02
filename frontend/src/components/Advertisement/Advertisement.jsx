@@ -1,10 +1,11 @@
-
 import { useEffect, useState } from "react";
 import api from "../../api/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./Advertisement.css";
 
 const getCurrentDevice = () =>
-  window.matchMedia("(max-width: 767px)").matches
+  typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
     ? "mobile"
     : "desktop";
 
@@ -12,6 +13,7 @@ const Advertisement = ({ page, position }) => {
   const [advertisements, setAdvertisements] = useState([]);
   const [device, setDevice] = useState(getCurrentDevice);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage?.() || {};
 
   const allowedPages = ["homepage", "article", "category"];
   const allowedPositions = ["top", "middle", "bottom"];
@@ -24,22 +26,13 @@ const Advertisement = ({ page, position }) => {
     };
 
     mediaQuery.addEventListener("change", handleDeviceChange);
-
     return () => {
       mediaQuery.removeEventListener("change", handleDeviceChange);
     };
   }, []);
 
   useEffect(() => {
-    if (
-      !allowedPages.includes(page) ||
-      !allowedPositions.includes(position)
-    ) {
-      console.error("Invalid advertisement props:", {
-        page,
-        position,
-      });
-
+    if (!allowedPages.includes(page) || !allowedPositions.includes(position)) {
       setAdvertisements([]);
       setLoading(false);
       return;
@@ -61,14 +54,11 @@ const Advertisement = ({ page, position }) => {
         });
 
         if (!controller.signal.aborted) {
-          setAdvertisements(response.data.advertisements || []);
+          const ads = response.data?.advertisements || response.data?.data || [];
+          setAdvertisements(Array.isArray(ads) ? ads : []);
         }
       } catch (error) {
-        if (
-          !controller.signal.aborted &&
-          error.code !== "ERR_CANCELED"
-        ) {
-          console.error("Advertisement fetch error:", error);
+        if (!controller.signal.aborted) {
           setAdvertisements([]);
         }
       } finally {
@@ -79,37 +69,65 @@ const Advertisement = ({ page, position }) => {
     };
 
     fetchAdvertisements();
-
     return () => controller.abort();
   }, [page, position, device]);
 
-  if (loading || advertisements.length === 0) {
+  const validAds = advertisements.filter((ad) => Boolean(getImageUrl(ad?.bannerImage)));
+
+  if (loading || validAds.length === 0) {
     return null;
   }
 
-  return (
-    <section className="advertisement-section">
-      {advertisements.map((ad) => (
-        <a
-          key={ad._id}
-          href={ad.destinationUrl}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
-          className="advertisement-link"
-        >
-          <div className="advertisement-label">
-            Advertisement
-          </div>
+  const count = validAds.length;
+  const gridClass =
+    count === 1
+      ? "ad-grid-single"
+      : count === 2
+      ? "ad-grid-double"
+      : count === 3
+      ? "ad-grid-triple"
+      : "ad-grid-multi";
 
-          <img
-            src={ad.bannerImage}
-            alt={ad.name || "Advertisement"}
-            className="advertisement-image"
-            loading="lazy"
-          />
-        </a>
-      ))}
-    </section>
+  const disclaimerText = language === "hi" ? "विज्ञापन" : "ADVERTISEMENT";
+
+  return (
+    <aside
+      className={`advertisement-container ad-pos-${position}`}
+      aria-label={disclaimerText}
+    >
+      <div className="advertisement-header">
+        <span className="advertisement-line" />
+        <span className="advertisement-disclaimer">{disclaimerText}</span>
+        <span className="advertisement-line" />
+      </div>
+
+      <div className={`advertisement-grid ${gridClass}`}>
+        {validAds.map((ad) => {
+          const bannerUrl = getImageUrl(ad.bannerImage);
+
+          return (
+            <div key={ad._id} className="advertisement-card">
+              <a
+                href={ad.destinationUrl || "#"}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="advertisement-banner-link"
+                title={ad.name || "Sponsored Advertisement"}
+              >
+                <div className="advertisement-image-wrap">
+                  <img
+                    src={bannerUrl}
+                    alt={ad.name || "Sponsored Advertisement"}
+                    className="advertisement-banner-img"
+                    loading="lazy"
+                  />
+                </div>
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    </aside>
   );
 };
 

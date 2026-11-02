@@ -1,91 +1,269 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
+/* ==========================================================================
+   DAINIK BHASKAR INSPIRED EDITORIAL DESIGN SYSTEM
+   Professional Indian Digital News Portal Architecture
+   ========================================================================== */
 
 :root {
-  --primary: #D71920;
-  --primary-dark: #B51219;
+  /* Brand Editorial Colors - Dainik Bhaskar Inspired */
+  --primary: #C8102E;             /* Deep Newspaper Red (Dainik Bhaskar signature) */
+  --primary-dark: #9E0A12;        /* Rich Burgundy Crimson */
+  --primary-hover: #B00E27;
+  --primary-subtle: #FDF2F3;      /* Subtle Light Red Tint */
+  --primary-border: #F8B4BD;
 
-  --text-primary: #171717;
-  --text-secondary: #555555;
-  --text-muted: #888888;
+  --accent-gold: #D97706;         /* Indian Saffron / Amber */
+  --accent-gold-bg: #FFFBEB;
+  --accent-blue: #0284C7;
+  --accent-blue-bg: #F0F9FF;
+  --accent-green: #16A34A;
 
-  --bg-page: #F5F5F5;
-  --bg-card: #FFFFFF;
+  /* Neutrals & Clean Newspaper Surfaces */
+  --bg-page: #FFFFFF;             /* Crisp Clean Newspaper White */
+  --bg-card: #FFFFFF;             /* Pure White Card */
+  --bg-surface: #F5F5F5;          /* Very Light Grey Secondary Background */
+  --bg-surface-alt: #EFEFEF;
+  --bg-dark: #1F1F1F;             /* Deep Charcoal Masthead */
+  --bg-darker: #141414;
 
-  --border: #E5E5E5;
+  /* Typography Colors */
+  --text-main: #222222;           /* Dark Charcoal for Extreme Readability */
+  --text-headline: #111111;       /* Jet Black for Strong News Headlines */
+  --text-body: #2B2B2B;           /* Comfortable Newspaper Body Text */
+  --text-secondary: #666666;      /* Byline & Secondary Grey */
+  --text-muted: #888888;          /* Light Meta & Timestamps */
+  --text-inverted: #FFFFFF;
 
-  --font-body: 'Inter', 'Noto Sans Devanagari', sans-serif;
+  /* Newspaper Borders & Column Rules */
+  --border-light: #E5E5E5;        /* Light Grey Editorial Rule */
+  --border-medium: #D1D1D1;       /* Medium Separator */
+  --border-dark: #222222;         /* Bold Newspaper Header Rule */
 
-  --font-large: 16px;
-  --font-normal: 14px;
-  --font-small: 12px;
+  /* Editorial Typography */
+  --font-serif: 'Noto Serif Devanagari', 'Lora', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-masthead: 'Cinzel', 'Noto Serif Devanagari', Georgia, serif;
 
-  --container-width: 1320px;
+  /* Crisp Newspaper Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 4px 10px 0 rgba(0, 0, 0, 0.08);
+
+  /* Subtle Crisp Border Radii (No bubbly rounded cards) */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-full: 9999px;
+
+  /* Layout Container */
+  --container-max: 1240px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.25s ease-in-out;
 }
 
-* {
+/* ==========================================================================
+   Base Resets
+   ========================================================================== */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: var(--font-body);
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
   line-height: 1.6;
-  color: var(--text-primary);
-  background: var(--bg-page);
+  color: var(--text-body);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-button,
-input {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.28;
+  color: var(--text-headline);
+  letter-spacing: -0.01em;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
-img,
-video {
-  display: block;
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+img, video {
   max-width: 100%;
+  height: auto;
+  display: block;
 }
 
+/* ==========================================================================
+   Layout Containers
+   ========================================================================== */
 .container {
-  width: min(100% - 32px, var(--container-width));
+  width: min(100% - 32px, var(--container-max));
   margin-inline: auto;
 }
 
-.section-title {
-  font-size: 22px;
-  font-weight: 800;
+@media (max-width: 640px) {
+  .container {
+    width: min(100% - 20px, var(--container-max));
+  }
+}
+
+/* App Shell */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main.main-content {
+  flex: 1 0 auto;
+  padding-bottom: 50px;
+}
+
+/* ==========================================================================
+   Editorial Section Header (Dainik Bhaskar Style)
+   High-contrast category bar with red vertical tag
+   ========================================================================== */
+.editorial-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--border-medium);
   padding-bottom: 10px;
-  margin-bottom: 18px;
-  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+  gap: 16px;
 }
 
-@media (max-width: 768px) {
-  .container {
-    width: calc(100% - 24px);
-  }
-
-  .section-title {
-    font-size: 18px;
-  }
+.editorial-section-header.has-accent {
+  border-bottom: 2px solid var(--primary);
 }
 
-@media (max-width: 425px) {
-  body {
-    font-size: 12px;
-  }
+.editorial-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-headline);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
 
-  .container {
-    width: calc(100% - 20px);
-  }
+.editorial-section-title .title-bar {
+  width: 4px;
+  height: 20px;
+  background-color: var(--primary);
+  border-radius: var(--radius-xs);
+  display: inline-block;
+}
+
+.editorial-section-link {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.editorial-section-link:hover {
+  color: var(--primary-dark);
+  transform: translateX(3px);
+}
+
+/* Category Badge */
+.category-badge {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border-radius: var(--radius-xs);
+  width: fit-content;
+}
+
+.category-badge.badge-outline {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+/* Live Pulse Badge */
+.live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  display: inline-block;
+  animation: pulse-ring 1.3s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.4; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+/* Skeleton Loading State */
+.skeleton {
+  background: linear-gradient(90deg, #E4E4E7 25%, #F4F4F5 50%, #E4E4E7 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-xs);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F2F4;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
 }

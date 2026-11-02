@@ -17,8 +17,8 @@ const initialForm = {
   name: "",
   bannerImage: "",
   destinationUrl: "",
-  page: "homepage",
-  position: "top",
+  pages: ["homepage"],
+  positions: ["top"],
   devices: ["desktop", "mobile"],
   startAt: "",
   endAt: "",
@@ -99,8 +99,12 @@ const AdvertisementForm = () => {
         name: ad.name || "",
         bannerImage: ad.bannerImage || "",
         destinationUrl: ad.destinationUrl || "",
-        page: ad.placement?.page || "homepage",
-        position: ad.placement?.position || "top",
+        pages: ad.pages && ad.pages.length > 0
+          ? ad.pages
+          : ad.placement?.page ? [ad.placement.page] : ["homepage"],
+        positions: ad.positions && ad.positions.length > 0
+          ? ad.positions
+          : ad.placement?.position ? [ad.placement.position] : ["top"],
         devices: ad.devices || ["desktop", "mobile"],
         startAt: toDateTimeLocal(ad.startAt),
         endAt: toDateTimeLocal(ad.endAt),
@@ -223,6 +227,26 @@ const AdvertisementForm = () => {
     }
   };
 
+  const handleMultiCheckbox = (field, value) => {
+    setForm((previous) => {
+      const current = previous[field] || [];
+      const alreadySelected = current.includes(value);
+      const updated = alreadySelected
+        ? current.filter((item) => item !== value)
+        : [...current, value];
+
+      return {
+        ...previous,
+        [field]: updated,
+      };
+    });
+    setIsDirty(true);
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
   const handleBackOrCancel = () => {
     if (isDirty) {
       setShowDiscardConfirm(true);
@@ -261,6 +285,14 @@ const AdvertisementForm = () => {
       newErrors.devices = "Select at least one device";
     }
 
+    if (!form.pages || form.pages.length === 0) {
+      newErrors.pages = "Select at least one page";
+    }
+
+    if (!form.positions || form.positions.length === 0) {
+      newErrors.positions = "Select at least one position";
+    }
+
     if (!form.startAt) {
       newErrors.startAt = "Start date and time is required";
     }
@@ -296,9 +328,11 @@ const AdvertisementForm = () => {
       bannerImage: form.bannerImage,
       destinationUrl: form.destinationUrl.trim(),
       placement: {
-        page: form.page,
-        position: form.position,
+        page: form.pages[0],
+        position: form.positions[0],
       },
+      pages: form.pages,
+      positions: form.positions,
       devices: form.devices,
       startAt: new Date(form.startAt).toISOString(),
       endAt: new Date(form.endAt).toISOString(),
@@ -479,35 +513,57 @@ const AdvertisementForm = () => {
 
         <div className="ad-form-section">
           <h2>Advertisement Placement</h2>
-          <p>Choose where this advertisement should appear.</p>
+          <p>Choose where this advertisement should appear. Select multiple pages and positions.</p>
 
           <div className="ad-form-grid">
             <div className="ad-form-field">
-              <label htmlFor="page">Page *</label>
-              <select
-                id="page"
-                name="page"
-                value={form.page}
-                onChange={handleChange}
-              >
-                <option value="homepage">Homepage</option>
-                <option value="article">Article</option>
-                <option value="category">Category</option>
-              </select>
+              <label>Pages <span className="field-required-mark">*</span></label>
+              <div className={`ad-device-options ${errors.pages ? "has-field-error" : ""}`}>
+                {[
+                  { value: "homepage", label: "Homepage" },
+                  { value: "article", label: "Article" },
+                  { value: "category", label: "Category" },
+                ].map((opt) => (
+                  <label className="ad-device-option" key={opt.value}>
+                    <input
+                      type="checkbox"
+                      checked={form.pages.includes(opt.value)}
+                      onChange={() => handleMultiCheckbox("pages", opt.value)}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+              {errors.pages && (
+                <span className="field-error-text" role="alert">
+                  {errors.pages}
+                </span>
+              )}
             </div>
 
             <div className="ad-form-field">
-              <label htmlFor="position">Position *</label>
-              <select
-                id="position"
-                name="position"
-                value={form.position}
-                onChange={handleChange}
-              >
-                <option value="top">Top</option>
-                <option value="middle">Middle</option>
-                <option value="bottom">Bottom</option>
-              </select>
+              <label>Positions <span className="field-required-mark">*</span></label>
+              <div className={`ad-device-options ${errors.positions ? "has-field-error" : ""}`}>
+                {[
+                  { value: "top", label: "Top" },
+                  { value: "middle", label: "Middle" },
+                  { value: "bottom", label: "Bottom" },
+                ].map((opt) => (
+                  <label className="ad-device-option" key={opt.value}>
+                    <input
+                      type="checkbox"
+                      checked={form.positions.includes(opt.value)}
+                      onChange={() => handleMultiCheckbox("positions", opt.value)}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+              {errors.positions && (
+                <span className="field-error-text" role="alert">
+                  {errors.positions}
+                </span>
+              )}
             </div>
           </div>
         </div>

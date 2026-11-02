@@ -36,6 +36,19 @@ const advertisementSchema = new mongoose.Schema(
       },
     },
 
+    // Support for multiple pages and positions
+    pages: {
+      type: [String],
+      enum: ["homepage", "article", "category"],
+      default: undefined,
+    },
+
+    positions: {
+      type: [String],
+      enum: ["top", "middle", "bottom"],
+      default: undefined,
+    },
+
     devices: {
       type: [String],
       enum: ["desktop", "mobile"],
@@ -99,6 +112,22 @@ advertisementSchema.index({
   isActive: 1,
   "placement.page": 1,
   "placement.position": 1,
+  startAt: 1,
+  endAt: 1,
+});
+
+// Separate indexes for array fields (MongoDB does not allow
+// a compound index on two parallel array fields).
+advertisementSchema.index({
+  isActive: 1,
+  pages: 1,
+  startAt: 1,
+  endAt: 1,
+});
+
+advertisementSchema.index({
+  isActive: 1,
+  positions: 1,
   startAt: 1,
   endAt: 1,
 });

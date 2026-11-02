@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 import {
   Plus,
@@ -30,7 +31,6 @@ const getErrorMessage = (error, fallback) =>
 
 const getLocalizedName = (value, language = "en") => {
   if (!value) return "—";
-
   if (typeof value === "string") return value;
 
   return value[language] || value.en || value.hi || "—";
@@ -44,12 +44,14 @@ const getCategoryId = (category) => {
     : category._id || "";
 };
 
-const generateSlug = (value) => {
+// Backend-compatible ASCII slug
+const generateSlug = (value = "") => {
   return value
     .trim()
     .toLowerCase()
-    .normalize("NFC")
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 };
 
@@ -87,6 +89,7 @@ const SubcategoryList = () => {
     isLoading: false,
   });
 
+  // Load active categories
   const loadCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
@@ -118,6 +121,7 @@ const SubcategoryList = () => {
     }
   }, []);
 
+  // Load subcategories
   const loadSubcategories = useCallback(async () => {
     try {
       setLoading(true);
@@ -162,6 +166,7 @@ const SubcategoryList = () => {
     loadSubcategories();
   }, [loadSubcategories]);
 
+  // Update localized fields
   const updateLocalizedField = (field, language, value) => {
     setForm((previous) => ({
       ...previous,
@@ -170,16 +175,31 @@ const SubcategoryList = () => {
         [language]: value,
       },
     }));
+
+    const errorKey =
+      field === "name"
+        ? language === "en"
+          ? "nameEn"
+          : "nameHi"
+        : language === "en"
+          ? "descriptionEn"
+          : "descriptionHi";
+
+    setErrors((previous) => ({
+      ...previous,
+      [errorKey]: "",
+    }));
   };
 
+  // Reset form
   const resetForm = () => {
     setForm({
-      name: { en: "", hi: "" },
-      description: { en: "", hi: "" },
-      category: "",
-      displayOrder: 0,
+      ...initialForm,
+      name: { ...initialForm.name },
+      description: { ...initialForm.description },
     });
 
+    setErrors({});
     setEditingId(null);
   };
 
@@ -195,6 +215,7 @@ const SubcategoryList = () => {
     setModalOpen(true);
   };
 
+  // Edit subcategory
   const openEditModal = async (subcategory) => {
     try {
       setSaving(true);
@@ -227,6 +248,7 @@ const SubcategoryList = () => {
         displayOrder: selectedSubcategory.displayOrder ?? 0,
       });
 
+      setErrors({});
       setModalOpen(true);
     } catch (error) {
       toast.error(
@@ -237,37 +259,70 @@ const SubcategoryList = () => {
     }
   };
 
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.name.en.trim()) {
+    const englishName = form.name.en.trim();
+    const hindiName = form.name.hi.trim();
+    const englishDescription = form.description.en.trim();
+    const hindiDescription = form.description.hi.trim();
+
+    // English name validation
+    if (!englishName) {
       newErrors.nameEn = "English subcategory name is required";
-    } else if (form.name.en.trim().length < 2) {
+    } else if (englishName.length < 2) {
       newErrors.nameEn = "English name must be at least 2 characters";
-    } else if (!generateSlug(form.name.en)) {
+    } else if (englishName.length > 100) {
+      newErrors.nameEn = "English name cannot exceed 100 characters";
+    } else if (!/[a-zA-Z]/.test(englishName)) {
+      newErrors.nameEn = "Please enter a valid English name";
+    } else if (!generateSlug(englishName)) {
       newErrors.nameEn = "English name contains invalid characters";
     }
 
-    if (!form.name.hi.trim()) {
+    // Hindi name validation
+    if (!hindiName) {
       newErrors.nameHi = "Hindi subcategory name is required";
-    } else if (form.name.hi.trim().length < 2) {
+    } else if (hindiName.length < 2) {
       newErrors.nameHi = "Hindi name must be at least 2 characters";
-    } else if (!generateSlug(form.name.hi)) {
-      newErrors.nameHi = "Hindi name contains invalid characters";
+    } else if (hindiName.length > 100) {
+      newErrors.nameHi = "Hindi name cannot exceed 100 characters";
+    } else if (!/\p{Script=Devanagari}/u.test(hindiName)) {
+      newErrors.nameHi =
+        "Please enter a valid Hindi name in Devanagari";
     }
 
+    // English description validation
+    if (englishDescription.length > 500) {
+      newErrors.descriptionEn =
+        "English description cannot exceed 500 characters";
+    } else if (
+      englishDescription &&
+      !/[a-zA-Z]/.test(englishDescription)
+    ) {
+      newErrors.descriptionEn =
+        "Please enter a valid English description";
+    }
+
+    // Hindi description validation
+    if (hindiDescription.length > 500) {
+      newErrors.descriptionHi =
+        "Hindi description cannot exceed 500 characters";
+    } else if (
+      hindiDescription &&
+      !/\p{Script=Devanagari}/u.test(hindiDescription)
+    ) {
+      newErrors.descriptionHi =
+        "Please enter a valid Hindi description";
+    }
+
+    // Parent category validation
     if (!form.category) {
       newErrors.category = "Please select a parent category";
     }
 
-    if (form.description.en && form.description.en.length > 500) {
-      newErrors.descriptionEn = "English description cannot exceed 500 characters";
-    }
-
-    if (form.description.hi && form.description.hi.length > 500) {
-      newErrors.descriptionHi = "Hindi description cannot exceed 500 characters";
-    }
-
+    // Display order validation
     const displayOrder = Number(form.displayOrder);
 
     if (
@@ -276,19 +331,21 @@ const SubcategoryList = () => {
       displayOrder < 0 ||
       displayOrder > 10000
     ) {
-      newErrors.displayOrder = "Display order must be an integer between 0 and 10000";
+      newErrors.displayOrder =
+        "Display order must be an integer between 0 and 10000";
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      toast.error("Please resolve the validation errors in the form");
+      toast.error("Please check the highlighted fields");
       return false;
     }
 
     return true;
   };
 
+  // Create / Update subcategory
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -296,14 +353,17 @@ const SubcategoryList = () => {
 
     const wasEditing = Boolean(editingId);
 
+    // Generate both slugs from the English name.
+    const englishSlug = generateSlug(form.name.en);
+
     const payload = {
       name: {
         en: form.name.en.trim(),
         hi: form.name.hi.trim(),
       },
       slug: {
-        en: generateSlug(form.name.en),
-        hi: generateSlug(form.name.hi),
+        en: englishSlug,
+        hi: englishSlug,
       },
       description: {
         en: form.description.en.trim(),
@@ -344,31 +404,48 @@ const SubcategoryList = () => {
         await loadSubcategories();
       }
     } catch (error) {
-      toast.error(
-        getErrorMessage(error, "Unable to save subcategory")
-      );
+      const backendErrors = error?.response?.data?.errors;
+
+      if (Array.isArray(backendErrors) && backendErrors.length) {
+        toast.error(backendErrors.join(", "));
+      } else {
+        toast.error(
+          getErrorMessage(error, "Unable to save subcategory")
+        );
+      }
     } finally {
       setSaving(false);
     }
   };
 
+  // Activate / Deactivate
   const handleStatusChange = (subcategory) => {
     if (actionId) return;
+
     const isActivating = !subcategory.isActive;
 
     setConfirmModal({
       isOpen: true,
-      title: isActivating ? "Activate Subcategory" : "Deactivate Subcategory",
+      title: isActivating
+        ? "Activate Subcategory"
+        : "Deactivate Subcategory",
+
       message: isActivating
         ? `Are you sure you want to activate "${subcategory.name?.en || "this subcategory"}"? It will become visible on the public portal.`
         : `Are you sure you want to deactivate "${subcategory.name?.en || "this subcategory"}"? It will be hidden from the public portal.`,
+
       confirmText: isActivating ? "Activate" : "Deactivate",
       variant: isActivating ? "primary" : "warning",
       isLoading: false,
+
       onConfirm: async () => {
         try {
           setActionId(subcategory._id);
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: true,
+          }));
 
           const response = await api.patch(
             `/subcategories/${subcategory._id}/status`,
@@ -384,16 +461,27 @@ const SubcategoryList = () => {
           }
 
           toast.success(
-            isActivating ? "Subcategory activated" : "Subcategory deactivated"
+            isActivating
+              ? "Subcategory activated"
+              : "Subcategory deactivated"
           );
 
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          setConfirmModal((previous) => ({
+            ...previous,
+            isOpen: false,
+            isLoading: false,
+          }));
+
           await loadSubcategories();
         } catch (error) {
           toast.error(
             getErrorMessage(error, "Unable to update status")
           );
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: false,
+          }));
         } finally {
           setActionId(null);
         }
@@ -401,6 +489,7 @@ const SubcategoryList = () => {
     });
   };
 
+  // Delete subcategory
   const handleDelete = (subcategory) => {
     if (actionId) return;
 
@@ -411,10 +500,15 @@ const SubcategoryList = () => {
       confirmText: "Delete Subcategory",
       variant: "danger",
       isLoading: false,
+
       onConfirm: async () => {
         try {
           setActionId(subcategory._id);
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: true,
+          }));
 
           const response = await api.delete(
             `/subcategories/${subcategory._id}`
@@ -427,7 +521,12 @@ const SubcategoryList = () => {
           }
 
           toast.success("Subcategory deleted successfully");
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+
+          setConfirmModal((previous) => ({
+            ...previous,
+            isOpen: false,
+            isLoading: false,
+          }));
 
           if (subcategories.length === 1 && page > 1) {
             setPage((previous) => previous - 1);
@@ -438,7 +537,11 @@ const SubcategoryList = () => {
           toast.error(
             getErrorMessage(error, "Unable to delete subcategory")
           );
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: false,
+          }));
         } finally {
           setActionId(null);
         }
@@ -446,6 +549,7 @@ const SubcategoryList = () => {
     });
   };
 
+  // Search
   const handleSearch = (event) => {
     event.preventDefault();
 
@@ -453,6 +557,7 @@ const SubcategoryList = () => {
     setSearch(searchInput.trim());
   };
 
+  // Refresh
   const handleRefresh = () => {
     loadSubcategories();
     loadCategories();
@@ -603,9 +708,7 @@ const SubcategoryList = () => {
                               ? "Deactivate"
                               : "Activate"
                           }
-                          disabled={
-                            actionId === subcategory._id
-                          }
+                          disabled={actionId === subcategory._id}
                           onClick={() =>
                             handleStatusChange(subcategory)
                           }
@@ -673,6 +776,7 @@ const SubcategoryList = () => {
         </div>
       </div>
 
+      {/* Create / Edit Modal */}
       {modalOpen && (
         <div
           className="subcategory-modal-overlay"
@@ -709,34 +813,39 @@ const SubcategoryList = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="subcategory-modal-body">
+                {/* English Details */}
                 <section className="subcategory-form-section">
                   <h3>English Details</h3>
 
                   <div className="subcategory-form-grid">
                     <div className="subcategory-form-group full">
                       <label>
-                        Subcategory Name <span className="field-required-mark">*</span>
+                        Subcategory Name{" "}
+                        <span className="field-required-mark">*</span>
                       </label>
 
                       <input
                         type="text"
-                        className={errors.nameEn ? "has-field-error" : ""}
+                        className={
+                          errors.nameEn ? "has-field-error" : ""
+                        }
                         value={form.name.en}
-                        onChange={(event) => {
+                        onChange={(event) =>
                           updateLocalizedField(
                             "name",
                             "en",
                             event.target.value
-                          );
-                          if (errors.nameEn) {
-                            setErrors((prev) => ({ ...prev, nameEn: "" }));
-                          }
-                        }}
+                          )
+                        }
                         placeholder="e.g. Politics"
                         maxLength={100}
                       />
+
                       {errors.nameEn && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.nameEn}
                         </span>
                       )}
@@ -746,24 +855,29 @@ const SubcategoryList = () => {
                       <label>English Description</label>
 
                       <textarea
-                        className={errors.descriptionEn ? "has-field-error" : ""}
+                        className={
+                          errors.descriptionEn
+                            ? "has-field-error"
+                            : ""
+                        }
                         value={form.description.en}
-                        onChange={(event) => {
+                        onChange={(event) =>
                           updateLocalizedField(
                             "description",
                             "en",
                             event.target.value
-                          );
-                          if (errors.descriptionEn) {
-                            setErrors((prev) => ({ ...prev, descriptionEn: "" }));
-                          }
-                        }}
+                          )
+                        }
                         placeholder="Enter English description"
                         maxLength={500}
                         rows={3}
                       />
+
                       {errors.descriptionEn && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.descriptionEn}
                         </span>
                       )}
@@ -771,34 +885,39 @@ const SubcategoryList = () => {
                   </div>
                 </section>
 
+                {/* Hindi Details */}
                 <section className="subcategory-form-section">
                   <h3>Hindi Details</h3>
 
                   <div className="subcategory-form-grid">
                     <div className="subcategory-form-group full">
                       <label>
-                        Hindi Subcategory Name <span className="field-required-mark">*</span>
+                        Hindi Subcategory Name{" "}
+                        <span className="field-required-mark">*</span>
                       </label>
 
                       <input
                         type="text"
-                        className={errors.nameHi ? "has-field-error" : ""}
+                        className={
+                          errors.nameHi ? "has-field-error" : ""
+                        }
                         value={form.name.hi}
-                        onChange={(event) => {
+                        onChange={(event) =>
                           updateLocalizedField(
                             "name",
                             "hi",
                             event.target.value
-                          );
-                          if (errors.nameHi) {
-                            setErrors((prev) => ({ ...prev, nameHi: "" }));
-                          }
-                        }}
+                          )
+                        }
                         placeholder="उदाहरण: राजनीति"
                         maxLength={100}
                       />
+
                       {errors.nameHi && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.nameHi}
                         </span>
                       )}
@@ -808,24 +927,29 @@ const SubcategoryList = () => {
                       <label>Hindi Description</label>
 
                       <textarea
-                        className={errors.descriptionHi ? "has-field-error" : ""}
+                        className={
+                          errors.descriptionHi
+                            ? "has-field-error"
+                            : ""
+                        }
                         value={form.description.hi}
-                        onChange={(event) => {
+                        onChange={(event) =>
                           updateLocalizedField(
                             "description",
                             "hi",
                             event.target.value
-                          );
-                          if (errors.descriptionHi) {
-                            setErrors((prev) => ({ ...prev, descriptionHi: "" }));
-                          }
-                        }}
+                          )
+                        }
                         placeholder="हिंदी विवरण लिखें"
                         maxLength={500}
                         rows={3}
                       />
+
                       {errors.descriptionHi && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.descriptionHi}
                         </span>
                       )}
@@ -833,26 +957,32 @@ const SubcategoryList = () => {
                   </div>
                 </section>
 
+                {/* Additional Details */}
                 <section className="subcategory-form-section">
                   <h3>Additional Details</h3>
 
                   <div className="subcategory-form-grid">
                     <div className="subcategory-form-group full">
                       <label>
-                        Parent Category <span className="field-required-mark">*</span>
+                        Parent Category{" "}
+                        <span className="field-required-mark">*</span>
                       </label>
 
                       <select
-                        className={errors.category ? "has-field-error" : ""}
+                        className={
+                          errors.category ? "has-field-error" : ""
+                        }
                         value={form.category}
                         onChange={(event) => {
                           setForm((previous) => ({
                             ...previous,
                             category: event.target.value,
                           }));
-                          if (errors.category) {
-                            setErrors((prev) => ({ ...prev, category: "" }));
-                          }
+
+                          setErrors((previous) => ({
+                            ...previous,
+                            category: "",
+                          }));
                         }}
                         disabled={categoriesLoading}
                       >
@@ -874,7 +1004,10 @@ const SubcategoryList = () => {
                       </select>
 
                       {errors.category && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.category}
                         </span>
                       )}
@@ -890,7 +1023,8 @@ const SubcategoryList = () => {
 
                     <div className="subcategory-form-group">
                       <label>
-                        Display Order <span className="field-required-mark">*</span>
+                        Display Order{" "}
+                        <span className="field-required-mark">*</span>
                       </label>
 
                       <input
@@ -898,20 +1032,30 @@ const SubcategoryList = () => {
                         min="0"
                         max="10000"
                         step="1"
-                        className={errors.displayOrder ? "has-field-error" : ""}
+                        className={
+                          errors.displayOrder
+                            ? "has-field-error"
+                            : ""
+                        }
                         value={form.displayOrder}
                         onChange={(event) => {
                           setForm((previous) => ({
                             ...previous,
                             displayOrder: event.target.value,
                           }));
-                          if (errors.displayOrder) {
-                            setErrors((prev) => ({ ...prev, displayOrder: "" }));
-                          }
+
+                          setErrors((previous) => ({
+                            ...previous,
+                            displayOrder: "",
+                          }));
                         }}
                       />
+
                       {errors.displayOrder && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.displayOrder}
                         </span>
                       )}
@@ -951,9 +1095,16 @@ const SubcategoryList = () => {
         </div>
       )}
 
+      {/* Confirmation Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        onClose={() => !confirmModal.isLoading && setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          !confirmModal.isLoading &&
+          setConfirmModal((previous) => ({
+            ...previous,
+            isOpen: false,
+          }))
+        }
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}

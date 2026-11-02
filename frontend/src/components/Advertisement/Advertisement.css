@@ -1,45 +1,229 @@
-.advertisement-section {
-  width: 100%;
+/* ==========================================================================
+   ADVERTISEMENT COMPONENT STYLES
+   Editorial & Dainik Bhaskar Inspired Clean Banner Units
+   ========================================================================== */
+
+.advertisement-container {
+  margin: 24px auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin: 20px 0;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.advertisement-link {
-  display: block;
+.advertisement-container.ad-pos-top {
+  margin: 16px auto 24px;
+}
+
+.advertisement-container.ad-pos-middle {
+  margin: 36px auto;
+  max-width: 100%;
+}
+
+.advertisement-container.ad-pos-bottom {
+  margin: 36px auto 24px;
+}
+
+/* Header & Disclaimer */
+.advertisement-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.advertisement-line {
+  flex: 0 1 40px;
+  height: 1px;
+  background-color: var(--border-medium, #d1d1d1);
+}
+
+.advertisement-disclaimer {
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-muted, #888888);
+  text-transform: uppercase;
+  user-select: none;
+}
+
+/* Base Advertisement Grid */
+.advertisement-grid {
+  display: grid;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 1 ad: Centered with good width */
+.advertisement-grid.ad-grid-single {
+  grid-template-columns: 1fr;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.ad-grid-single .advertisement-card {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.ad-grid-single .advertisement-banner-link {
+  width: 100%;
+  max-width: 960px;
+}
+
+.ad-grid-single .advertisement-image-wrap {
+  width: 100%;
+  min-height: 120px;
+  max-height: 280px;
+  height: auto;
+  padding: 8px;
+}
+
+.ad-grid-single .advertisement-banner-img {
+  max-height: 280px;
+  width: 100%;
+}
+
+/* 2 ads: Side-by-side with equal dimensions */
+.advertisement-grid.ad-grid-double {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ad-grid-double .advertisement-image-wrap {
+  height: 220px;
+}
+
+/* 3 ads: Side-by-side with equal dimensions */
+.advertisement-grid.ad-grid-triple {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.ad-grid-triple .advertisement-image-wrap {
+  height: 190px;
+}
+
+/* 4 or more ads: Responsive grid */
+.advertisement-grid.ad-grid-multi {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.ad-grid-multi .advertisement-image-wrap {
+  height: 190px;
+}
+
+/* Card & Link Styles */
+.advertisement-card {
+  width: 100%;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.advertisement-banner-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   text-decoration: none;
-  color: #777;
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-light, #e5e5e5);
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
-.advertisement-label {
-  display: block;
-  text-align: center;
-  font-size: 10px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 5px;
+.advertisement-banner-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover, 0 4px 12px rgba(0, 0, 0, 0.08));
+  border-color: var(--border-medium, #cbd5e1);
 }
 
-.advertisement-image {
-  display: block;
+.advertisement-image-wrap {
   width: 100%;
-  height: auto;
-  max-height: 220px;
-  object-fit: cover;
-  object-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  padding: 6px;
+  box-sizing: border-box;
 }
 
-@media (max-width: 576px) {
-  .advertisement-section {
-    margin: 14px 0;
-    gap: 12px;
+.advertisement-banner-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Middle position specific adjustments (e.g. inside article content column) */
+.advertisement-container.ad-pos-middle .advertisement-grid.ad-grid-double .advertisement-image-wrap {
+  height: 200px;
+}
+
+.advertisement-container.ad-pos-middle .advertisement-grid.ad-grid-triple .advertisement-image-wrap {
+  height: 170px;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .advertisement-grid.ad-grid-triple {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .advertisement-container.ad-pos-top {
+    margin: 12px auto 18px;
   }
 
-  .advertisement-image {
-    max-height: 130px;
+  .advertisement-container.ad-pos-middle {
+    margin: 24px auto;
+  }
+
+  .advertisement-container.ad-pos-bottom {
+    margin: 24px auto 18px;
+  }
+
+  .advertisement-header {
+    margin-bottom: 8px;
+  }
+
+  .advertisement-grid.ad-grid-double,
+  .advertisement-grid.ad-grid-triple,
+  .advertisement-grid.ad-grid-multi {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ad-grid-single .advertisement-image-wrap {
+    min-height: 100px;
+    max-height: 220px;
+  }
+
+  .ad-grid-double .advertisement-image-wrap,
+  .ad-grid-triple .advertisement-image-wrap,
+  .ad-grid-multi .advertisement-image-wrap {
+    height: 180px;
   }
 }

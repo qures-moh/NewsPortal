@@ -1,254 +1,407 @@
+/* ==========================================================================
+   DAINIK BHASKAR INSPIRED HEADER STYLES
+   ========================================================================== */
 
-.site-header {
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+.db-site-header {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+  z-index: 40;
 }
 
-.header-inner {
-  min-height: 76px;
+/* 1. TOP UTILITY STRIP */
+.db-top-bar {
+  background-color: #18181B;
+  color: #A1A1AA;
+  font-size: 12px;
+  border-bottom: 1px solid #27272A;
+  padding: 6px 0;
+}
+
+.db-top-bar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  text-decoration: none;
-}
-
-.brand-symbol {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  background: #d71920;
-  color: #fff;
-  font-size: 27px;
-  font-weight: 800;
-  border-radius: 5px;
-}
-
-.brand-name {
-  font-size: 19px;
-  font-weight: 800;
-  line-height: 1.2;
-  color: #171717;
-}
-
-.brand-name small {
-  display: block;
-  font-size: 10px;
-  font-weight: 500;
-  color: #777;
-  letter-spacing: 1px;
-  margin-top: 4px;
-}
-
-.header-search {
-  display: flex;
-  align-items: center;
-  width: min(360px, 35%);
-  height: 40px;
-  border: 1px solid #e5e5e5;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.header-search:focus-within {
-  border-color: #d71920;
-  box-shadow: 0 0 0 2px rgba(215, 25, 32, 0.08);
-}
-
-.header-search input {
-  width: 100%;
-  height: 100%;
-  border: none;
-  outline: none;
-  padding: 0 12px;
-  font-size: 14px;
-  min-width: 0;
-}
-
-.header-search button {
-  height: 100%;
-  width: 44px;
-  flex-shrink: 0;
-  border: none;
-  background: #d71920;
-  color: white;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-
-.header-search button:hover {
-  background: #b9151b;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
   gap: 16px;
 }
 
-.language-switch {
-  display: flex;
-  padding: 3px;
-  background: #f3f3f3;
-  border-radius: 5px;
-}
-
-.language-switch button {
-  border: none;
-  padding: 6px 10px;
-  background: transparent;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #555;
-  cursor: pointer;
-}
-
-.language-switch button.active {
-  background: #d71920;
-  color: #fff;
-}
-
-.login-button {
+.db-top-left {
   display: flex;
   align-items: center;
-  gap: 7px;
-  border: 1px solid #ddd;
-  background: #fff;
-  padding: 9px 13px;
-  border-radius: 5px;
-  font-size: 13px;
-  cursor: pointer;
+  gap: 16px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
-.mobile-menu {
+.db-date-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #E4E4E7;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.db-top-icon {
+  color: #A1A1AA;
+}
+
+.db-edition-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  color: #D4D4D8;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.db-edition-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10B981;
+}
+
+/* Trending Tags in Top Bar */
+.db-top-trending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.db-trending-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #F59E0B;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.db-flame-icon {
+  color: #EF4444;
+}
+
+.db-tags-scroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.db-tags-scroll::-webkit-scrollbar {
   display: none;
-  border: none;
-  background: transparent;
-  cursor: pointer;
+}
+
+.db-tag-pill {
+  color: #D4D4D8;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.db-tag-pill:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+/* Right Top Bar */
+.db-top-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.db-epaper-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background-color var(--transition-fast);
+}
+
+.db-epaper-badge:hover {
+  background-color: var(--primary-dark);
+}
+
+.db-social-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db-social-link {
+  color: #A1A1AA;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  transition: all var(--transition-fast);
+}
+
+.db-social-link:hover {
+  color: #FFFFFF;
+  background-color: var(--primary);
+}
+
+.db-language-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.db-lang-choice {
+  color: #A1A1AA;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+  padding: 1px 4px;
+}
+
+.db-lang-choice.is-active {
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+.db-lang-divider {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   2. MAIN NEWSPAPER MASTHEAD
+   ========================================================================== */
+.db-masthead {
+  padding: 16px 0;
+  background-color: #FFFFFF;
+  border-bottom: 2px solid var(--border-dark);
+}
+
+.db-masthead-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.db-mobile-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-headline);
+  padding: 7px;
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+}
+
+.db-mobile-toggle-btn:hover {
+  background-color: var(--border-light);
+}
+
+/* Newspaper Brand Masthead */
+.db-brand-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.db-brand-logo-img {
+  max-height: 60px;
+  max-width: 280px;
+  object-fit: contain;
+}
+
+.db-newspaper-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+/* Dainik Bhaskar Style Sun Crest / Emblem */
+.db-brand-emblem-wrap {
+  flex-shrink: 0;
+}
+
+.db-sun-emblem {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #F59E0B 30%, #D97706 70%, var(--primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+  border: 2px solid #FFFFFF;
+  outline: 2px solid var(--primary);
+}
+
+.emblem-center-letter {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.db-brand-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.db-brand-name {
+  font-family: var(--font-masthead);
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-headline);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.db-brand-tagline {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+/* Right Masthead Actions */
+.db-masthead-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.db-header-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 240px;
+}
+
+.db-search-input {
+  width: 100%;
+  padding: 8px 34px 8px 14px;
+  font-size: 13px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.db-search-input:focus {
+  background-color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(196, 18, 26, 0.12);
+}
+
+.db-search-btn {
+  position: absolute;
+  right: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.db-search-btn:hover {
+  color: var(--primary);
+}
+
+.db-live-desk-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .db-top-trending {
+    display: none;
+  }
+  .db-brand-name {
+    font-size: 28px;
+  }
 }
 
 @media (max-width: 768px) {
-  .header-inner {
-    min-height: 66px;
-    gap: 10px;
-  }
-
-  .mobile-menu {
-    display: block;
-  }
-
-  .brand-symbol {
-    width: 36px;
-    height: 36px;
-    font-size: 22px;
-  }
-
-  .brand-name {
-    font-size: 15px;
-  }
-
-  .brand-name small {
-    font-size: 8px;
-  }
-
-  .header-search {
+  .db-date-display,
+  .db-edition-pill {
     display: none;
   }
 
-  .header-actions {
-    gap: 7px;
-  }
-
-  .login-button {
-    padding: 8px;
-  }
-
-  .login-button span {
-    display: none;
-  }
-}
-
-@media (max-width: 375px) {
-  .header-inner {
-    gap: 6px;
-  }
-
-  .brand-name {
-    font-size: 13px;
-  }
-
-  .language-switch button {
-    padding: 5px 7px;
-  }
-}
-
-@media (max-width: 768px) {
-  .header-inner {
-    min-height: 66px;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding-top: 10px;
-  }
-
-  .mobile-menu {
-    display: block;
-  }
-
-  .brand-symbol {
-    width: 36px;
-    height: 36px;
-    font-size: 22px;
-  }
-
-  .brand-name {
-    font-size: 15px;
-  }
-
-  .brand-name small {
-    font-size: 8px;
-  }
-
-  .header-search {
+  .db-mobile-toggle-btn {
     display: flex;
-    order: 3;
-    width: 100%;
+  }
+
+  .db-masthead-inner {
+    justify-content: space-between;
+  }
+
+  .db-brand-masthead {
+    margin: 0;
+  }
+
+  .db-sun-emblem {
+    width: 38px;
     height: 38px;
-    margin-bottom: 10px;
+  }
+  .emblem-center-letter {
+    font-size: 20px;
   }
 
-  .header-actions {
-    gap: 7px;
-    margin-left: auto;
+  .db-brand-name {
+    font-size: 22px;
   }
 
-  .login-button {
-    padding: 8px;
-  }
-
-  .login-button span {
+  .db-brand-tagline {
     display: none;
   }
-}
 
-@media (max-width: 375px) {
-  .header-inner {
-    gap: 6px;
-  }
-
-  .brand-name {
-    font-size: 13px;
-  }
-
-  .language-switch button {
-    padding: 5px 7px;
+  .db-masthead-actions {
+    display: none;
   }
 }

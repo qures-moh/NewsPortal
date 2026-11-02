@@ -41,6 +41,54 @@ const createCategory = async (data, userId) => {
   return category;
 };
 
+// const updateCategory = async (categoryId, data, userId) => {
+//   const category = await Category.findById(categoryId);
+
+//   if (!category) {
+//     throw createError("Category not found", 404);
+//   }
+
+//   if (data.slug) {
+//     await checkSlugAvailability(data.slug, categoryId);
+//   }
+
+//   if (data.name) {
+//     category.name = {
+//       ...category.name.toObject(),
+//       ...data.name,
+//     };
+//   }
+
+//   if (data.slug) {
+//     category.slug = {
+//       ...category.slug.toObject(),
+//       ...data.slug,
+//     };
+//   }
+
+//   if (data.description) {
+//     category.description = {
+//       ...category.description.toObject(),
+//       ...data.description,
+//     };
+//   }
+
+//   if (data.image !== undefined) {
+//     category.image = data.image;
+//   }
+
+//   if (data.displayOrder !== undefined) {
+//     category.displayOrder = data.displayOrder;
+//   }
+
+//   category.updatedBy = userId;
+
+//   await category.save();
+
+//   return category;
+// };
+
+
 const updateCategory = async (categoryId, data, userId) => {
   const category = await Category.findById(categoryId);
 
@@ -52,25 +100,28 @@ const updateCategory = async (categoryId, data, userId) => {
     await checkSlugAvailability(data.slug, categoryId);
   }
 
-  if (data.name) {
-    category.name = {
-      ...category.name.toObject(),
-      ...data.name,
-    };
+  if (data.name?.en !== undefined) {
+    category.set("name.en", data.name.en);
   }
 
-  if (data.slug) {
-    category.slug = {
-      ...category.slug.toObject(),
-      ...data.slug,
-    };
+  if (data.name?.hi !== undefined) {
+    category.set("name.hi", data.name.hi);
   }
 
-  if (data.description) {
-    category.description = {
-      ...category.description.toObject(),
-      ...data.description,
-    };
+  if (data.slug?.en !== undefined) {
+    category.set("slug.en", data.slug.en);
+  }
+
+  if (data.slug?.hi !== undefined) {
+    category.set("slug.hi", data.slug.hi);
+  }
+
+  if (data.description?.en !== undefined) {
+    category.set("description.en", data.description.en);
+  }
+
+  if (data.description?.hi !== undefined) {
+    category.set("description.hi", data.description.hi);
   }
 
   if (data.image !== undefined) {

@@ -1,0 +1,11 @@
+/* Main App Shell Layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+}
+
+.main-content {
+  flex: 1 0 auto;
+}

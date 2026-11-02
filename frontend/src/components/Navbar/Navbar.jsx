@@ -1,78 +1,66 @@
-
-import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
-import { ChevronDown, X } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import {
+  ChevronDown,
+  X,
+  Home as HomeIcon,
+  Search,
+  Phone,
+  Mail,
+  MapPin,
+  ExternalLink,
+  Globe,
+} from "lucide-react";
 
 import { useLanguage } from "../../context/LanguageContext";
+import { useSettings } from "../../context/SettingsContext";
 import api from "../../api/api";
-
+import { getImageUrl } from "../../utils/imageUrl";
+import { getLocalizedValue } from "../../utils/newsHelpers";
+import { SocialIcon } from "../common/SocialIcons";
 import "./Navbar.css";
-
-const getLocalizedValue = (value, language) => {
-  if (!value) return "";
-
-  if (typeof value === "string") return value;
-
-  return value[language] || value.en || value.hi || "";
-};
 
 const extractArray = (response, key) => {
   const data = response?.data?.data;
-
-  if (Array.isArray(response?.data?.[key])) {
-    return response.data[key];
-  }
-
-  if (Array.isArray(data?.[key])) {
-    return data[key];
-  }
-
-  if (Array.isArray(data)) {
-    return data;
-  }
-
+  if (Array.isArray(response?.data?.[key])) return response.data[key];
+  if (Array.isArray(data?.[key])) return data[key];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(response?.data)) return response.data;
   return [];
 };
 
 const Navbar = ({ isMenuOpen, onCloseMenu }) => {
-  const { language } = useLanguage();
+  const { language, changeLanguage } = useLanguage();
+  const { branding, contact, socialLinks, websiteName } = useSettings();
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
-  const [subcategoriesByCategory, setSubcategoriesByCategory] =
-    useState({});
-
+  const [subcategoriesByCategory, setSubcategoriesByCategory] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   const [expandedCategory, setExpandedCategory] = useState(null);
+  const [mobileSearch, setMobileSearch] = useState("");
+  const [mobileLogoError, setMobileLogoError] = useState(false);
 
-  // Fetch categories and their subcategories.
+  const isHindi = language === "hi";
+
+  // Fetch categories and subcategories
   useEffect(() => {
     const controller = new AbortController();
 
     const fetchNavigation = async () => {
       try {
         setLoading(true);
-        setError("");
-
         const categoryResponse = await api.get("/categories", {
           signal: controller.signal,
         });
 
         if (controller.signal.aborted) return;
 
-        const categoryData = extractArray(
-          categoryResponse,
-          "categories"
-        );
-
-        const activeCategories = categoryData.filter(
-          (category) => category.isActive !== false
-        );
-
+        const categoryData = extractArray(categoryResponse, "categories");
+        const activeCategories = categoryData.filter((c) => c.isActive !== false);
         setCategories(activeCategories);
 
-        // Fetch subcategories for each category.
+        // Fetch subcategories for each active category
         const subcategoryResults = await Promise.all(
           activeCategories.map(async (category) => {
             try {
@@ -80,43 +68,20 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
                 `/subcategories/category/${category._id}`,
                 { signal: controller.signal }
               );
-
-              const subcategories = extractArray(
-                response,
-                "subcategories"
-              );
-
-              return [
-                category._id,
-                subcategories.filter(
-                  (subcategory) => subcategory.isActive !== false
-                ),
-              ];
-            } catch (err) {
-              if (!controller.signal.aborted) {
-                console.error(
-                  `Failed to fetch subcategories for ${category._id}:`,
-                  err
-                );
-              }
-
+              const subs = extractArray(response, "subcategories");
+              return [category._id, subs.filter((s) => s.isActive !== false)];
+            } catch {
               return [category._id, []];
             }
           })
         );
 
-        if (controller.signal.aborted) return;
-
-        setSubcategoriesByCategory(
-          Object.fromEntries(subcategoryResults)
-        );
+        if (!controller.signal.aborted) {
+          setSubcategoriesByCategory(Object.fromEntries(subcategoryResults));
+        }
       } catch (err) {
         if (!controller.signal.aborted) {
-          console.error("Navigation fetch error:", err);
-          setError(
-            err.response?.data?.message ||
-              "Unable to load navigation."
-          );
+          console.error("Navigation load error:", err);
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -126,38 +91,31 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
     };
 
     fetchNavigation();
-
     return () => controller.abort();
   }, []);
 
-  // Close drawer on Escape.
+  // Keyboard accessibility and body lock
   useEffect(() => {
     if (!isMenuOpen) return;
-
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        onCloseMenu();
-      }
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onCloseMenu();
     };
-
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isMenuOpen, onCloseMenu]);
-
-  // Prevent background scrolling while drawer is open.
-  useEffect(() => {
-    if (!isMenuOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
+    document.addEventListener("keydown", handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, onCloseMenu]);
+
+  const handleMobileSearch = (e) => {
+    e.preventDefault();
+    if (!mobileSearch.trim()) return;
+    onCloseMenu();
+    navigate(`/search?q=${encodeURIComponent(mobileSearch.trim())}`);
+  };
 
   const handleLinkClick = () => {
     setExpandedCategory(null);
@@ -165,216 +123,269 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
   };
 
   const toggleCategory = (categoryId) => {
-    setExpandedCategory((previous) =>
-      previous === categoryId ? null : categoryId
-    );
+    setExpandedCategory((prev) => (prev === categoryId ? null : categoryId));
   };
 
-  const renderSubcategoryLinks = (categoryId) => {
-    const subcategories =
-      subcategoriesByCategory[categoryId] || [];
+  const mobileLogoUrl =
+    branding?.mobileLogo?.isVisible && branding?.mobileLogo?.url
+      ? getImageUrl(branding.mobileLogo.url)
+      : branding?.logo?.isVisible && branding?.logo?.url
+      ? getImageUrl(branding.logo.url)
+      : null;
 
-    return subcategories.map((subcategory) => {
-      const name = getLocalizedValue(
-        subcategory.name,
-        language
-      );
+  const currentWebsiteName = getLocalizedValue(websiteName, language) || (isHindi ? "दैनिक समाचार" : "THE CHRONICLE");
 
-      const slug = getLocalizedValue(
-        subcategory.slug,
-        language
-      );
-
-      if (!name || !slug) return null;
-
-      return (
-        <NavLink
-          key={subcategory._id}
-          to={`/subcategory/${slug}`}
-          className="navbar-subcategory-link"
-          onClick={handleLinkClick}
-        >
-          {name}
-        </NavLink>
-      );
-    });
-  };
+  // Divide categories into visible items + more dropdown if > 8
+  const MAX_PRIMARY = 8;
+  const visibleCategories = categories.slice(0, MAX_PRIMARY);
+  const overflowCategories = categories.slice(MAX_PRIMARY);
 
   return (
     <>
-      {/* Desktop Navbar */}
-      <nav className="navbar">
-        <div className="navbar-inner">
-          <NavLink to="/" end className="navbar-link">
-            {language === "hi" ? "होम" : "Home"}
-          </NavLink>
+      {/* DESKTOP STICKY NAVBAR */}
+      <nav className="mega-navbar">
+        <div className="container navbar-container">
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <NavLink to="/" end className="nav-link home-nav-link" title={isHindi ? "होम" : "Home"}>
+                <HomeIcon size={16} />
+                <span>{isHindi ? "होम" : "Home"}</span>
+              </NavLink>
+            </li>
 
-          {loading && (
-            <span className="navbar-status">Loading...</span>
-          )}
-
-          {!loading &&
-            categories.map((category) => {
-              const name = getLocalizedValue(
-                category.name,
-                language
-              );
-
-              const slug = getLocalizedValue(
-                category.slug,
-                language
-              );
+            {visibleCategories.map((cat) => {
+              const name = getLocalizedValue(cat.name, language);
+              const slug = getLocalizedValue(cat.slug, language);
+              const subcategories = subcategoriesByCategory[cat._id] || [];
 
               if (!name || !slug) return null;
 
-              const subcategories =
-                subcategoriesByCategory[category._id] || [];
-
               return (
-                <div
-                  className="navbar-category"
-                  key={category._id}
-                >
-                  <NavLink
-                    to={`/category/${slug}`}
-                    className="navbar-link"
-                  >
-                    {name}
-
-                    {subcategories.length > 0 && (
-                      <ChevronDown size={15} />
-                    )}
+                <li key={cat._id} className={`nav-item ${subcategories.length > 0 ? "has-dropdown" : ""}`}>
+                  <NavLink to={`/category/${slug}`} className="nav-link">
+                    <span>{name}</span>
+                    {subcategories.length > 0 && <ChevronDown size={14} className="dropdown-arrow" />}
                   </NavLink>
 
+                  {/* Dropdown Menu */}
                   {subcategories.length > 0 && (
-                    <div className="navbar-dropdown">
-                      {renderSubcategoryLinks(category._id)}
+                    <div className="nav-dropdown-menu">
+                      <div className="dropdown-header">
+                        <span className="dropdown-title">{name}</span>
+                        <Link to={`/category/${slug}`} className="dropdown-view-all">
+                          {isHindi ? "सभी खबरें →" : "All Stories →"}
+                        </Link>
+                      </div>
+                      <div className="dropdown-grid">
+                        {subcategories.map((sub) => {
+                          const subName = getLocalizedValue(sub.name, language);
+                          const subSlug = getLocalizedValue(sub.slug, language);
+                          if (!subName || !subSlug) return null;
+                          return (
+                            <Link
+                              key={sub._id}
+                              to={`/subcategory/${subSlug}`}
+                              className="dropdown-item"
+                            >
+                              <span className="dropdown-item-bullet">•</span>
+                              <span>{subName}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
-                </div>
+                </li>
               );
             })}
 
-          {error && (
-            <span className="navbar-status">{error}</span>
-          )}
+            {/* Overflow "More" Dropdown */}
+            {overflowCategories.length > 0 && (
+              <li className="nav-item has-dropdown">
+                <button type="button" className="nav-link more-nav-link">
+                  <span>{isHindi ? "अन्य विषय" : "More"}</span>
+                  <ChevronDown size={14} className="dropdown-arrow" />
+                </button>
+                <div className="nav-dropdown-menu overflow-menu">
+                  <div className="dropdown-grid">
+                    {overflowCategories.map((cat) => {
+                      const name = getLocalizedValue(cat.name, language);
+                      const slug = getLocalizedValue(cat.slug, language);
+                      if (!name || !slug) return null;
+                      return (
+                        <Link key={cat._id} to={`/category/${slug}`} className="dropdown-item">
+                          <span>{name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </li>
+            )}
+          </ul>
         </div>
       </nav>
 
-      {/* Mobile Drawer Backdrop */}
+      {/* MOBILE DRAWER BACKDROP */}
       <div
-        className={`mobile-nav-backdrop ${
-          isMenuOpen ? "active" : ""
-        }`}
+        className={`mobile-backdrop ${isMenuOpen ? "active" : ""}`}
         onClick={onCloseMenu}
         aria-hidden="true"
       />
 
-      {/* Mobile Drawer */}
-      <aside
-        className={`mobile-nav-drawer ${
-          isMenuOpen ? "open" : ""
-        }`}
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-nav-header">
-          <h2>
-            {language === "hi" ? "मेन्यू" : "Menu"}
-          </h2>
-
+      {/* MOBILE DRAWER */}
+      <aside className={`mobile-drawer ${isMenuOpen ? "open" : ""}`} aria-hidden={!isMenuOpen}>
+        <div className="mobile-drawer-header">
+          <Link to="/" className="mobile-drawer-brand" onClick={handleLinkClick}>
+            {mobileLogoUrl && !mobileLogoError ? (
+              <img
+                src={mobileLogoUrl}
+                alt={currentWebsiteName}
+                className="mobile-logo-img"
+                onError={() => setMobileLogoError(true)}
+              />
+            ) : (
+              <span className="mobile-brand-title">{currentWebsiteName}</span>
+            )}
+          </Link>
           <button
             type="button"
-            className="mobile-nav-close"
+            className="mobile-close-btn"
             onClick={onCloseMenu}
-            aria-label="Close navigation menu"
+            aria-label="Close menu"
           >
             <X size={22} />
           </button>
         </div>
 
-        <div className="mobile-nav-links">
-          <NavLink
-            to="/"
-            end
-            className="mobile-nav-link"
-            onClick={handleLinkClick}
-          >
-            {language === "hi" ? "होम" : "Home"}
+        {/* Mobile Search */}
+        <div className="mobile-drawer-search">
+          <form onSubmit={handleMobileSearch} className="mobile-search-form">
+            <input
+              type="search"
+              value={mobileSearch}
+              onChange={(e) => setMobileSearch(e.target.value)}
+              placeholder={isHindi ? "खबरें खोजें..." : "Search articles..."}
+              className="mobile-search-input"
+            />
+            <button type="submit" className="mobile-search-btn">
+              <Search size={16} />
+            </button>
+          </form>
+        </div>
+
+        {/* Mobile Language Switcher */}
+        <div className="mobile-lang-row">
+          <span className="mobile-lang-label">{isHindi ? "भाषा:" : "Language:"}</span>
+          <div className="mobile-lang-toggle">
+            <button
+              type="button"
+              className={`mobile-lang-btn ${language === "en" ? "active" : ""}`}
+              onClick={() => changeLanguage("en")}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              className={`mobile-lang-btn ${language === "hi" ? "active" : ""}`}
+              onClick={() => changeLanguage("hi")}
+            >
+              हिन्दी
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Accordion */}
+        <nav className="mobile-nav-list">
+          <NavLink to="/" end className="mobile-nav-item" onClick={handleLinkClick}>
+            <HomeIcon size={18} />
+            <span>{isHindi ? "होम" : "Home"}</span>
           </NavLink>
 
-          {loading && (
-            <p className="navbar-status">
-              {language === "hi"
-                ? "लोड हो रहा है..."
-                : "Loading categories..."}
-            </p>
-          )}
+          {categories.map((cat) => {
+            const name = getLocalizedValue(cat.name, language);
+            const slug = getLocalizedValue(cat.slug, language);
+            const subcategories = subcategoriesByCategory[cat._id] || [];
+            const isExpanded = expandedCategory === cat._id;
 
-          {!loading &&
-            categories.map((category) => {
-              const name = getLocalizedValue(
-                category.name,
-                language
-              );
+            if (!name || !slug) return null;
 
-              const slug = getLocalizedValue(
-                category.slug,
-                language
-              );
-
-              if (!name || !slug) return null;
-
-              const subcategories =
-                subcategoriesByCategory[category._id] || [];
-
-              const isExpanded =
-                expandedCategory === category._id;
-
-              return (
-                <div
-                  className="mobile-category-group"
-                  key={category._id}
-                >
-                  <div className="mobile-category-heading">
-                    <NavLink
-                      to={`/category/${slug}`}
-                      className="mobile-nav-link"
-                      onClick={handleLinkClick}
+            return (
+              <div key={cat._id} className="mobile-category-block">
+                <div className="mobile-category-row">
+                  <NavLink
+                    to={`/category/${slug}`}
+                    className="mobile-nav-item"
+                    onClick={handleLinkClick}
+                  >
+                    <span>{name}</span>
+                  </NavLink>
+                  {subcategories.length > 0 && (
+                    <button
+                      type="button"
+                      className={`mobile-expand-toggle ${isExpanded ? "expanded" : ""}`}
+                      onClick={() => toggleCategory(cat._id)}
+                      aria-label="Toggle subcategories"
                     >
-                      {name}
-                    </NavLink>
-
-                    {subcategories.length > 0 && (
-                      <button
-                        type="button"
-                        className="mobile-category-toggle"
-                        onClick={() =>
-                          toggleCategory(category._id)
-                        }
-                        aria-expanded={isExpanded}
-                        aria-label={`Toggle ${name} subcategories`}
-                      >
-                        <ChevronDown
-                          size={19}
-                          className={
-                            isExpanded ? "rotated" : ""
-                          }
-                        />
-                      </button>
-                    )}
-                  </div>
-
-                  {isExpanded && (
-                    <div className="mobile-subcategory-list">
-                      {renderSubcategoryLinks(category._id)}
-                    </div>
+                      <ChevronDown size={18} />
+                    </button>
                   )}
                 </div>
-              );
-            })}
 
-          {error && (
-            <p className="navbar-status">{error}</p>
+                {isExpanded && subcategories.length > 0 && (
+                  <div className="mobile-subcategories-list">
+                    {subcategories.map((sub) => {
+                      const subName = getLocalizedValue(sub.name, language);
+                      const subSlug = getLocalizedValue(sub.slug, language);
+                      if (!subName || !subSlug) return null;
+                      return (
+                        <NavLink
+                          key={sub._id}
+                          to={`/subcategory/${subSlug}`}
+                          className="mobile-sub-item"
+                          onClick={handleLinkClick}
+                        >
+                          {subName}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Mobile Contact & Social Details */}
+        <div className="mobile-drawer-footer">
+          {contact?.email?.isVisible && contact?.email?.value && (
+            <div className="mobile-contact-line">
+              <Mail size={14} />
+              <a href={`mailto:${contact.email.value}`}>{contact.email.value}</a>
+            </div>
+          )}
+          {contact?.mobile?.isVisible && contact?.mobile?.value && (
+            <div className="mobile-contact-line">
+              <Phone size={14} />
+              <a href={`tel:${contact.mobile.value}`}>{contact.mobile.value}</a>
+            </div>
+          )}
+
+          {socialLinks.length > 0 && (
+            <div className="mobile-social-row">
+              {socialLinks.filter((s) => s.isActive).map((s, idx) => (
+                <a
+                  key={idx}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mobile-social-icon"
+                  title={s.platform}
+                >
+                  <SocialIcon platform={s.platform} size={15} />
+                </a>
+              ))}
+            </div>
           )}
         </div>
       </aside>

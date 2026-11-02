@@ -1,20 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Zap, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import api from "../../api/api";
-import { Zap } from "lucide-react";
+import { getLocalizedArticle } from "../../utils/newsHelpers";
 import "./BreakingNews.css";
 
-const BreakingNews = () => {
+const BreakingNews = ({ news: initialNews }) => {
   const { language } = useLanguage();
+  const [news, setNews] = useState(Array.isArray(initialNews) ? initialNews : []);
+  const [loading, setLoading] = useState(!initialNews || initialNews.length === 0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const isHindi = language === "hi";
 
+  // If initialNews is passed and updates, use it
   useEffect(() => {
-    let isMounted = true;
+    if (Array.isArray(initialNews) && initialNews.length > 0) {
+      setNews(initialNews);
+      setLoading(false);
+    }
+  }, [initialNews]);
 
-    const fetchBreakingNews = async () => {
+  // If no initialNews provided, fetch breaking news
+  useEffect(() => {
+    if (Array.isArray(initialNews) && initialNews.length > 0) return;
+
+    let isMounted = true;
+    const fetchBreaking = async () => {
       try {
         const response = await api.get("/news", {
           params: {
@@ -25,76 +39,105 @@ const BreakingNews = () => {
             sort: "latest",
           },
         });
-
-        const breakingNews = response.data.data?.news || [];
-
+        const items = response.data?.data?.news || [];
         if (isMounted) {
-          setNews(
-            breakingNews.filter((article) => article.isBreaking)
-          );
+          setNews(items.filter((a) => a.isBreaking));
         }
-      } catch (error) {
-        console.error("Breaking news fetch error:", error);
+      } catch (err) {
+        console.warn("Breaking news ticker error:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    fetchBreakingNews();
-
-    const interval = setInterval(fetchBreakingNews, 60000);
-
+    fetchBreaking();
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
-  }, [language]);
+  }, [language, initialNews]);
 
-  const getLocalizedValue = (value) => {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-
-    return value[language] || value.en || value.hi || "";
-  };
+  // Auto cycle ticker every 5 seconds
+  useEffect(() => {
+    if (news.length <= 1 || isPaused) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % news.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [news.length, isPaused]);
 
   if (loading || news.length === 0) return null;
 
+  const currentArticle = news[currentIndex] || news[0];
+  const { title, slug } = getLocalizedArticle(currentArticle, language);
+
+  if (!title || !slug) return null;
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + news.length) % news.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % news.length);
+  };
+
   return (
-    <section className="breaking-news">
-      <div className="breaking-label">
-        <Zap size={16} fill="currentColor" />
-        <span>
-          {language === "hi" ? "ब्रेकिंग न्यूज़" : "BREAKING NEWS"}
-        </span>
-      </div>
+    <div
+      className="breaking-ticker-wrapper"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="container breaking-ticker-container">
+        {/* Live Badge */}
+        <div className="breaking-ticker-badge">
+          <span className="live-pulse-dot" />
+          <Zap size={14} className="zap-icon" />
+          <span className="badge-text">
+            {isHindi ? "ब्रेकिंग न्यूज़" : "BREAKING"}
+          </span>
+        </div>
 
-      <div className="breaking-track-wrapper">
-        <div className="breaking-track">
-          {[...news, ...news].map((article, index) => {
-            const title = getLocalizedValue(
-              article.title?.[language]?.title
-            );
+        {/* Ticker Content */}
+        <div className="breaking-ticker-headline">
+          <Link
+            to={`/news/${language}/${slug}`}
+            className="breaking-headline-link"
+          >
+            <span className="ticker-count">[{currentIndex + 1}/{news.length}]</span>
+            <span className="ticker-title">{title}</span>
+          </Link>
+        </div>
 
-            const slug = getLocalizedValue(
-              article.title?.[language]?.slug
-            );
+        {/* Ticker Controls */}
+        <div className="breaking-ticker-controls">
+          <button
+            type="button"
+            className="ticker-ctrl-btn"
+            onClick={handlePrev}
+            aria-label="Previous headline"
+          >
+            <ChevronLeft size={16} />
+          </button>
 
-            if (!title || !slug) return null;
+          <button
+            type="button"
+            className="ticker-ctrl-btn"
+            onClick={() => setIsPaused((prev) => !prev)}
+            aria-label={isPaused ? "Play ticker" : "Pause ticker"}
+          >
+            {isPaused ? <Play size={12} /> : <Pause size={12} />}
+          </button>
 
-            return (
-              <Link
-                key={`${article._id}-${index}`}
-                to={`/news/${language}/${slug}`}
-                className="breaking-item"
-              >
-                {title}
-                <span className="breaking-separator">◆</span>
-              </Link>
-            );
-          })}
+          <button
+            type="button"
+            className="ticker-ctrl-btn"
+            onClick={handleNext}
+            aria-label="Next headline"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

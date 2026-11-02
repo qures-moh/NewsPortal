@@ -12,10 +12,15 @@ const isValidText = (value, min, max) =>
   value.trim().length >= min &&
   value.trim().length <= max;
 
+// const isValidSlug = (value) =>
+//   typeof value === "string" &&
+//   value.length <= 120 &&
+//   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+
 const isValidSlug = (value) =>
   typeof value === "string" &&
   value.length <= 120 &&
-  /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+  /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u.test(value);
 
 const validateLocalizedField = (value, field, required = true) => {
   const errors = [];

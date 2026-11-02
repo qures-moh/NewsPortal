@@ -1,0 +1,93 @@
+
+.news-tts {
+  width: 100%;
+  padding: 18px;
+  margin: 20px 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.news-tts-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.news-tts-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8edff;
+  color: #253b80;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.news-tts-header h3 {
+  margin: 0 0 4px;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.news-tts-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.news-tts-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.news-tts-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #253b80;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.news-tts-controls button:hover {
+  background: #1b2e68;
+}
+
+.news-tts-controls button.tts-stop {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.tts-language {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.tts-error {
+  margin: 12px 0 0;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .news-tts {
+    padding: 14px;
+  }
+
+  .tts-language {
+    margin-left: 0;
+  }
+}

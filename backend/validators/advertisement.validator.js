@@ -4,6 +4,8 @@ const allowedFields = [
   "bannerImage",
   "destinationUrl",
   "placement",
+  "pages",
+  "positions",
   "devices",
   "startAt",
   "endAt",
@@ -104,6 +106,40 @@ const validateDevices = (devices, errors) => {
   });
 };
 
+const validatePages = (pages, errors) => {
+  if (!Array.isArray(pages) || pages.length === 0) {
+    errors.push("Select at least one page");
+    return;
+  }
+
+  if (new Set(pages).size !== pages.length) {
+    errors.push("Duplicate pages are not allowed");
+  }
+
+  pages.forEach((page) => {
+    if (!allowedPages.includes(page)) {
+      errors.push(`Invalid page: ${page}`);
+    }
+  });
+};
+
+const validatePositions = (positions, errors) => {
+  if (!Array.isArray(positions) || positions.length === 0) {
+    errors.push("Select at least one position");
+    return;
+  }
+
+  if (new Set(positions).size !== positions.length) {
+    errors.push("Duplicate positions are not allowed");
+  }
+
+  positions.forEach((position) => {
+    if (!allowedPositions.includes(position)) {
+      errors.push(`Invalid position: ${position}`);
+    }
+  });
+};
+
 const validateDateFields = (data, errors) => {
   ["startAt", "endAt"].forEach((field) => {
     if (
@@ -200,6 +236,16 @@ const validateAdvertisement = (req, res, next, isUpdate) => {
         errors.push("placement.position is required");
       }
     }
+  }
+
+  // Validate multi-select pages
+  if (data.pages !== undefined) {
+    validatePages(data.pages, errors);
+  }
+
+  // Validate multi-select positions
+  if (data.positions !== undefined) {
+    validatePositions(data.positions, errors);
   }
 
   if (data.devices !== undefined) {

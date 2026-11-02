@@ -30,7 +30,7 @@ const getAdminAdvertisements = async (req, res, next) => {
 
     let activeFilter;
 
-    if (isActive !== undefined) {
+    if (isActive !== undefined && isActive !== "") {
       if (isActive !== "true" && isActive !== "false") {
         throw createError("isActive must be true or false");
       }

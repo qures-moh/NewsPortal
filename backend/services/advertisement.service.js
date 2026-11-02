@@ -92,7 +92,11 @@ const getAdminAdvertisements = async ({
       throw createError("Invalid advertisement page", 400);
     }
 
-    filter["placement.page"] = pageType;
+    // Match either legacy placement.page or the new pages array
+    filter.$or = [
+      { "placement.page": pageType },
+      { pages: pageType },
+    ];
   }
 
   if (position) {
@@ -100,7 +104,21 @@ const getAdminAdvertisements = async ({
       throw createError("Invalid advertisement position", 400);
     }
 
-    filter["placement.position"] = position;
+    // Match either legacy placement.position or the new positions array
+    if (filter.$or) {
+      // If we already have a $or from pageType, use $and to combine
+      const pageOr = filter.$or;
+      delete filter.$or;
+      filter.$and = [
+        { $or: pageOr },
+        { $or: [{ "placement.position": position }, { positions: position }] },
+      ];
+    } else {
+      filter.$or = [
+        { "placement.position": position },
+        { positions: position },
+      ];
+    }
   }
 
   if (isActive !== undefined) {
@@ -158,6 +176,8 @@ const updateAdvertisement = async (id, data, adminId) => {
     "name",
     "bannerImage",
     "destinationUrl",
+    "pages",
+    "positions",
     "devices",
     "startAt",
     "endAt",
@@ -227,15 +247,18 @@ const getPublicAdvertisements = async ({
 
   const now = new Date();
 
+  // Match ads using multi-select pages/positions OR legacy single placement
   const advertisements = await Advertisement.find({
     isActive: true,
-    "placement.page": page,
-    "placement.position": position,
+    $or: [
+      { pages: page, positions: position },
+      { "placement.page": page, "placement.position": position },
+    ],
     devices: device,
     startAt: { $lte: now },
     endAt: { $gte: now },
   })
-    .select("name bannerImage destinationUrl placement devices")
+    .select("name bannerImage destinationUrl placement pages positions devices")
     .sort({ createdAt: -1 })
     .lean();
 

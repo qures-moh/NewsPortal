@@ -1,102 +1,126 @@
-.breaking-news {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  height: 42px;
-  margin: 15px 0;
-  overflow: hidden;
-  background: #fff5f5;
-  border: 1px solid #f1d4d4;
-  border-radius: 4px;
+/* ==========================================================================
+   DAINIK BHASKAR INSPIRED BREAKING NEWS TICKER
+   ========================================================================== */
+
+.breaking-ticker-wrapper {
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-medium);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.breaking-label {
-  flex-shrink: 0;
+.breaking-ticker-container {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 16px;
-  color: #ffffff;
-  background: #c62828;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-  z-index: 1;
+  gap: 14px;
+  min-height: 42px;
 }
 
-.breaking-track-wrapper {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.breaking-track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  white-space: nowrap;
-  animation: breaking-scroll 35s linear infinite;
-}
-
-.breaking-track:hover {
-  animation-play-state: paused;
-}
-
-.breaking-item {
+/* High-contrast Red & Gold Badge */
+.breaking-ticker-badge {
   display: inline-flex;
   align-items: center;
-  gap: 22px;
-  padding-left: 22px;
-  color: #333333;
+  gap: 6px;
+  background-color: var(--primary);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(196, 18, 26, 0.3);
+}
+
+.zap-icon {
+  fill: #FDE047;
+  color: #FDE047;
+}
+
+/* Headline Link */
+.breaking-ticker-headline {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.breaking-headline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-headline);
   font-size: 14px;
   font-weight: 600;
-  text-decoration: none;
+  transition: color var(--transition-fast);
+  max-width: 100%;
 }
 
-.breaking-item:hover {
-  color: #c62828;
+.ticker-count {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  background-color: var(--primary-subtle);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
 }
 
-.breaking-separator {
-  color: #c62828;
-  font-size: 9px;
+.ticker-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@keyframes breaking-scroll {
-  from {
-    transform: translateX(0);
+.breaking-headline-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* Controls */
+.breaking-ticker-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ticker-ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.ticker-ctrl-btn:hover {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .breaking-ticker-container {
+    gap: 8px;
+    padding: 6px 0;
   }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 768px) {
-  .breaking-news {
-    height: 38px;
-    margin: 10px 0;
-  }
-
-  .breaking-label {
-    padding: 0 10px;
+  .breaking-ticker-badge {
+    padding: 4px 8px;
     font-size: 10px;
-    gap: 5px;
   }
-
-  .breaking-item {
+  .breaking-headline-link {
     font-size: 12px;
-    gap: 15px;
   }
-
-  .breaking-track {
-    animation-duration: 28s;
+  .ticker-count {
+    display: none;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .breaking-track {
-    animation: none;
+  .breaking-ticker-controls {
+    display: none;
   }
 }
