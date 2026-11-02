@@ -209,7 +209,7 @@ const updateAdvertisement = async (id, data, adminId) => {
   return advertisement;
 };
 
-// Permanently delete an advertisement.
+
 const deleteAdvertisement = async (id) => {
   validateId(id);
 
@@ -222,8 +222,7 @@ const deleteAdvertisement = async (id) => {
   return advertisement;
 };
 
-// Get advertisements eligible for public display.
-// The frontend can rotate the returned banners.
+
 const getPublicAdvertisements = async ({
   page,
   position,

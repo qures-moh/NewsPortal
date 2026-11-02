@@ -30,6 +30,8 @@ const env = {
 
   JWT_ACCESS_SECRET: requiredEnv("JWT_ACCESS_SECRET"),
   JWT_REFRESH_SECRET: requiredEnv("JWT_REFRESH_SECRET"),
+
+  UTTER_API_KEY: requiredEnv("UTTER_API_KEY"),
 };
 
 if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {

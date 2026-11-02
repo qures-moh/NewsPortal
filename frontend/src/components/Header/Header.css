@@ -1,3 +1,4 @@
+
 /* ==========================================================================
    DAINIK BHASKAR INSPIRED HEADER STYLES
    ========================================================================== */
@@ -9,7 +10,10 @@
   z-index: 40;
 }
 
-/* 1. TOP UTILITY STRIP */
+/* ==========================================================================
+   1. TOP UTILITY STRIP
+   ========================================================================== */
+
 .db-top-bar {
   background-color: #18181B;
   color: #A1A1AA;
@@ -68,7 +72,8 @@
   background-color: #10B981;
 }
 
-/* Trending Tags in Top Bar */
+/* Trending Tags */
+
 .db-top-trending {
   display: flex;
   align-items: center;
@@ -98,6 +103,7 @@
   overflow-x: auto;
   scrollbar-width: none;
 }
+
 .db-tags-scroll::-webkit-scrollbar {
   display: none;
 }
@@ -115,6 +121,7 @@
 }
 
 /* Right Top Bar */
+
 .db-top-right {
   display: flex;
   align-items: center;
@@ -194,6 +201,7 @@
 /* ==========================================================================
    2. MAIN NEWSPAPER MASTHEAD
    ========================================================================== */
+
 .db-masthead {
   padding: 16px 0;
   background-color: #FFFFFF;
@@ -222,7 +230,8 @@
   background-color: var(--border-light);
 }
 
-/* Newspaper Brand Masthead */
+/* Newspaper Brand */
+
 .db-brand-masthead {
   display: flex;
   align-items: center;
@@ -243,7 +252,8 @@
   text-align: left;
 }
 
-/* Dainik Bhaskar Style Sun Crest / Emblem */
+/* Sun Emblem */
+
 .db-brand-emblem-wrap {
   flex-shrink: 0;
 }
@@ -252,7 +262,12 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: radial-gradient(circle, #F59E0B 30%, #D97706 70%, var(--primary) 100%);
+  background: radial-gradient(
+    circle,
+    #F59E0B 30%,
+    #D97706 70%,
+    var(--primary) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -294,12 +309,15 @@
   text-transform: uppercase;
 }
 
-/* Right Masthead Actions */
+/* Masthead Actions */
+
 .db-masthead-actions {
   display: flex;
   align-items: center;
   gap: 14px;
 }
+
+/* Legacy desktop search input */
 
 .db-header-search {
   position: relative;
@@ -356,45 +374,186 @@
 }
 
 /* ==========================================================================
-   RESPONSIVE
+   3. SEARCH ICON VISIBILITY
+   Desktop icon: 769px and above
+   Mobile icon: 768px and below
    ========================================================================== */
-@media (max-width: 1024px) {
+
+/* Desktop search icon */
+
+.db-desktop-search-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: var(--text-headline);
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.db-desktop-search-icon:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--bg-surface);
+}
+
+/* Mobile search icon hidden by default */
+
+.db-mobile-search-toggle {
+  display: none !important;
+}
+
+/* Mobile search panel hidden by default */
+
+.db-mobile-search-panel {
+  display: none;
+}
+
+/* ==========================================================================
+   4. TABLET / LAPTOP
+   ========================================================================== */
+
+@media (min-width: 769px) and (max-width: 1100px) {
   .db-top-trending {
     display: none;
   }
+
+  .db-masthead-inner {
+    gap: 12px;
+  }
+
+  .db-brand-logo-img {
+    max-width: 230px;
+  }
+
   .db-brand-name {
     font-size: 28px;
   }
+
+  .db-masthead-actions {
+    gap: 10px;
+  }
+
+  .db-live-desk-pill {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .db-top-right {
+    gap: 10px;
+  }
 }
 
+/* ==========================================================================
+   5. MOBILE HEADER
+   ========================================================================== */
+
 @media (max-width: 768px) {
+  .db-site-header {
+    border-bottom: none;
+  }
+
+  .db-top-bar {
+    padding: 6px 0;
+  }
+
   .db-date-display,
-  .db-edition-pill {
+  .db-edition-pill,
+  .db-top-trending {
     display: none;
+  }
+
+  .db-top-bar-inner {
+    justify-content: flex-end;
+  }
+
+  .db-top-left {
+    display: none;
+  }
+
+  .db-top-right {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .db-epaper-badge {
+    padding: 4px 9px;
+    font-size: 10px;
+  }
+
+  .db-social-group {
+    gap: 6px;
+  }
+
+  .db-social-link {
+    width: 26px;
+    height: 26px;
+  }
+
+  .db-language-toggle {
+    padding: 3px 8px;
+  }
+
+  /* Normal mobile masthead */
+
+  .db-masthead {
+    padding: 10px 0;
+    position: relative;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .db-masthead-inner {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 8px;
   }
 
   .db-mobile-toggle-btn {
     display: flex;
-  }
-
-  .db-masthead-inner {
-    justify-content: space-between;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
   }
 
   .db-brand-masthead {
     margin: 0;
+    justify-self: center;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .db-brand-logo-img {
+    max-height: 48px;
+    max-width: 190px;
+  }
+
+  .db-newspaper-brand {
+    gap: 8px;
   }
 
   .db-sun-emblem {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
+
   .emblem-center-letter {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .db-brand-name {
-    font-size: 22px;
+    font-size: 23px;
+    text-align: center;
   }
 
   .db-brand-tagline {
@@ -402,6 +561,244 @@
   }
 
   .db-masthead-actions {
+    display: none !important;
+  }
+
+  /* Hide desktop search icon on mobile */
+
+  .db-desktop-search-icon {
+    display: none !important;
+  }
+
+  /* Show mobile search icon */
+
+  .db-mobile-search-toggle {
+    display: flex !important;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    color: #18181B;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* Mobile search panel */
+
+  .db-mobile-search-panel {
+    display: block;
+    padding: 10px 16px 4px;
+    background: #FFFFFF;
+  }
+
+  .db-mobile-search-form {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+  }
+
+  .db-mobile-search-form input {
+    width: 100%;
+    height: 42px;
+    padding: 0 46px 0 12px;
+    background: #FFFFFF;
+    border: 1px solid #D4D4D8;
+    border-radius: 6px;
+    color: #18181B;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .db-mobile-search-form input:focus {
+    border-color: var(--primary);
+  }
+
+  .db-mobile-search-form button {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #52525B;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Fixed header after scrolling */
+
+  .db-site-header.db-header-scrolled {
+    padding-bottom: 62px;
+  }
+
+  .db-masthead.db-masthead-sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 8px 0;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E5E5;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.10);
+    z-index: 9999;
+  }
+
+  .db-masthead-sticky .db-masthead-inner {
+    min-height: 44px;
+  }
+
+  .db-masthead-sticky .db-mobile-toggle-btn,
+  .db-masthead-sticky .db-mobile-search-toggle {
+    width: 42px;
+    height: 42px;
+  }
+
+  .db-masthead-sticky .db-brand-logo-img {
+    max-height: 42px;
+  }
+
+  .db-masthead-sticky .db-brand-name {
+    font-size: 21px;
+  }
+
+  .db-masthead-sticky .db-brand-tagline {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   6. SMALL MOBILE - 425px
+   ========================================================================== */
+
+@media (max-width: 425px) {
+  .db-top-bar {
+    padding: 5px 0;
+  }
+
+  .db-top-right {
+    gap: 8px;
+  }
+
+  .db-epaper-badge {
+    font-size: 9px;
+    padding: 4px 7px;
+  }
+
+  .db-social-link {
+    width: 24px;
+    height: 24px;
+  }
+
+  .db-language-toggle {
+    gap: 3px;
+    padding: 3px 6px;
+  }
+
+  .db-lang-choice {
+    font-size: 11px;
+  }
+
+  .db-masthead {
+    padding: 9px 0;
+  }
+
+  .db-brand-logo-img {
+    max-height: 44px;
+    max-width: 170px;
+  }
+
+  .db-brand-name {
+    font-size: 21px;
+  }
+
+  .db-masthead-sticky .db-masthead-inner {
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    gap: 6px;
+  }
+
+  .db-masthead-sticky .db-mobile-toggle-btn,
+  .db-masthead-sticky .db-mobile-search-toggle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .db-masthead-sticky .db-brand-logo-img {
+    max-width: 165px;
+    max-height: 40px;
+  }
+
+  .db-masthead-sticky .db-brand-name {
+    font-size: 19px;
+  }
+}
+
+/* ==========================================================================
+   7. EXTRA SMALL MOBILE - 375px
+   ========================================================================== */
+
+@media (max-width: 375px) {
+  .db-top-right {
+    gap: 6px;
+  }
+
+  .db-epaper-badge {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  .db-social-group {
+    gap: 4px;
+  }
+
+  .db-language-toggle {
+    padding: 3px 5px;
+  }
+
+  .db-lang-choice {
+    font-size: 10px;
+  }
+
+  .db-masthead-inner {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 5px;
+  }
+
+  .db-mobile-toggle-btn,
+  .db-mobile-search-toggle {
+    width: 38px;
+    height: 38px;
+  }
+
+  .db-brand-logo-img {
+    max-height: 40px;
+    max-width: 150px;
+  }
+
+  .db-brand-name {
+    font-size: 19px;
+  }
+
+  .db-masthead-sticky .db-masthead-inner {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 5px;
+  }
+
+  .db-masthead-sticky .db-mobile-toggle-btn,
+  .db-masthead-sticky .db-mobile-search-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .db-masthead-sticky .db-brand-logo-img {
+    max-width: 145px;
+    max-height: 38px;
+  }
+
+  .db-masthead-sticky .db-brand-name {
+    font-size: 18px;
   }
 }

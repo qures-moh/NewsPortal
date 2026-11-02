@@ -36,7 +36,7 @@ const advertisementSchema = new mongoose.Schema(
       },
     },
 
-    // Support for multiple pages and positions
+   
     pages: {
       type: [String],
       enum: ["homepage", "article", "category"],

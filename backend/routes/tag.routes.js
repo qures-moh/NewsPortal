@@ -65,6 +65,13 @@ router.patch(
   tagController.updateTagStatus
 );
 
+router.patch(
+  "/:id/trending",
+  ...adminOnly,
+  validateTagId,
+  tagController.updateTagTrending
+);
+
 router.delete(
   "/:id",
   ...adminOnly,

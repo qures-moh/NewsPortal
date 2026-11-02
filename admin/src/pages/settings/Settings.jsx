@@ -25,14 +25,12 @@ const platforms = [
 
 const defaultSettings = {
   websiteName: { en: "", hi: "" },
-
   branding: {
     logo: { url: null, isVisible: true },
     mobileLogo: { url: null, isVisible: true },
     footerLogo: { url: null, isVisible: true },
     favicon: { url: null, isVisible: true },
   },
-
   contact: {
     mobile: { value: "", isVisible: true },
     whatsapp: { value: "", isVisible: true },
@@ -44,7 +42,6 @@ const defaultSettings = {
     showContactInFooter: true,
     showFloatingWhatsapp: true,
   },
-
   socialLinks: platforms.map((platform) => ({
     platform,
     url: "",
@@ -52,7 +49,6 @@ const defaultSettings = {
     showInHeader: false,
     showInFooter: true,
   })),
-
   socialDisplay: {
     showInHeader: true,
     showInFooter: true,
@@ -163,6 +159,17 @@ const Settings = () => {
     }
   };
 
+  const clearFieldError = (field) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+
+      const next = { ...prev };
+      delete next[field];
+
+      return next;
+    });
+  };
+
   const updateNested = (section, field, value) => {
     setSettings((prev) => ({
       ...prev,
@@ -257,7 +264,10 @@ const Settings = () => {
     }
 
     try {
-      setUploading((prev) => ({ ...prev, [field]: true }));
+      setUploading((prev) => ({
+        ...prev,
+        [field]: true,
+      }));
 
       const formData = new FormData();
       formData.append("image", file);
@@ -274,6 +284,7 @@ const Settings = () => {
       }
 
       updateBranding(field, "url", imagePath);
+
       toast.success("Image uploaded successfully");
     } catch (error) {
       toast.error(
@@ -282,66 +293,107 @@ const Settings = () => {
           "Image upload failed"
       );
     } finally {
-      setUploading((prev) => ({ ...prev, [field]: false }));
+      setUploading((prev) => ({
+        ...prev,
+        [field]: false,
+      }));
     }
   };
 
   const validateSettings = () => {
     const nextErrors = {};
 
-    if (!settings.websiteName.en.trim()) {
-      nextErrors["websiteName.en"] = "English website name is required";
-    } else if (settings.websiteName.en.trim().length < 2) {
-      nextErrors["websiteName.en"] = "English website name must be at least 2 characters";
+    const websiteNameEn = settings.websiteName.en.trim();
+    const websiteNameHi = settings.websiteName.hi.trim();
+
+    // Website name validation
+
+    if (!websiteNameEn) {
+      nextErrors["websiteName.en"] =
+        "English website name is required";
+    } else if (websiteNameEn.length < 2) {
+      nextErrors["websiteName.en"] =
+        "Website name must contain at least 2 characters";
     }
 
-    if (!settings.websiteName.hi.trim()) {
-      nextErrors["websiteName.hi"] = "हिंदी वेबसाइट का नाम आवश्यक है";
-    } else if (settings.websiteName.hi.trim().length < 2) {
-      nextErrors["websiteName.hi"] = "हिंदी वेबसाइट का नाम कम से कम 2 अक्षरों का होना चाहिए";
+    if (!websiteNameHi) {
+      nextErrors["websiteName.hi"] =
+        "हिंदी वेबसाइट का नाम आवश्यक है";
+    } else if (websiteNameHi.length < 2) {
+      nextErrors["websiteName.hi"] =
+        "हिंदी वेबसाइट का नाम कम से कम 2 अक्षरों का होना चाहिए";
     }
 
-    const emailValue = settings.contact?.email?.value?.trim();
+    // Email validation - optional
+
+    const emailValue = settings.contact.email.value.trim();
+
     if (emailValue) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
       if (!emailRegex.test(emailValue)) {
-        nextErrors["contact.email"] = "Please enter a valid email address";
+        nextErrors["contact.email"] =
+          "Please enter a valid email address";
       }
     }
 
-    const mobileValue = settings.contact?.mobile?.value?.trim();
+    // Mobile validation - optional
+
+    const mobileValue = settings.contact.mobile.value.trim();
+
     if (mobileValue) {
-      const phoneRegex = /^[0-9+\s\-()]{7,20}$/;
+      const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
+
       if (!phoneRegex.test(mobileValue)) {
-        nextErrors["contact.mobile"] = "Please enter a valid mobile number";
+        nextErrors["contact.mobile"] =
+          "Please enter a valid mobile number";
+      } else if (mobileValue.replace(/\D/g, "").length < 7) {
+        nextErrors["contact.mobile"] =
+          "Mobile number must contain at least 7 digits";
       }
     }
 
-    const whatsappValue = settings.contact?.whatsapp?.value?.trim();
+    // WhatsApp validation - optional
+
+    const whatsappValue = settings.contact.whatsapp.value.trim();
+
     if (whatsappValue) {
-      const phoneRegex = /^[0-9+\s\-()]{7,20}$/;
+      const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
+
       if (!phoneRegex.test(whatsappValue)) {
-        nextErrors["contact.whatsapp"] = "Please enter a valid WhatsApp number";
+        nextErrors["contact.whatsapp"] =
+          "Please enter a valid WhatsApp number";
+      } else if (whatsappValue.replace(/\D/g, "").length < 7) {
+        nextErrors["contact.whatsapp"] =
+          "WhatsApp number must contain at least 7 digits";
       }
     }
 
-    const urlRegex = /^https?:\/\/[^\s$.?#].[^\s]*$/i;
+    // Social link validation
+
+    const urlRegex =
+      /^https?:\/\/(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:[/?#][^\s]*)?$/i;
+
     settings.socialLinks.forEach((item) => {
       const url = item.url.trim();
+
       if (item.isActive && !url) {
-        nextErrors[`social.${item.platform}`] = `URL is required for active ${item.platform} link`;
+        nextErrors[`social.${item.platform}`] =
+          `URL is required for active ${item.platform} link`;
       } else if (url && !urlRegex.test(url)) {
-        nextErrors[`social.${item.platform}`] = "URL must start with http:// or https://";
+        nextErrors[`social.${item.platform}`] =
+          "Please enter a valid URL starting with https:// or http://";
       }
     });
 
+    setErrors(nextErrors);
+
     if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors);
       toast.error("Please correct the errors in the settings form");
       return false;
     }
 
-    setErrors({});
     return true;
   };
 
@@ -356,21 +408,44 @@ const Settings = () => {
       setSaving(true);
 
       const payload = {
-        websiteName: settings.websiteName,
+        websiteName: {
+          en: settings.websiteName.en.trim(),
+          hi: settings.websiteName.hi.trim(),
+        },
         branding: settings.branding,
-        contact: settings.contact,
-        socialLinks: settings.socialLinks,
+        contact: {
+          ...settings.contact,
+          mobile: {
+            ...settings.contact.mobile,
+            value: settings.contact.mobile.value.trim(),
+          },
+          whatsapp: {
+            ...settings.contact.whatsapp,
+            value: settings.contact.whatsapp.value.trim(),
+          },
+          email: {
+            ...settings.contact.email,
+            value: settings.contact.email.value.trim(),
+          },
+        },
+        socialLinks: settings.socialLinks.map((item) => ({
+          ...item,
+          url: item.url.trim(),
+        })),
         socialDisplay: settings.socialDisplay,
       };
 
       await api.patch("/settings/admin", payload);
 
       toast.success("Website settings saved successfully");
+      setErrors({});
     } catch (error) {
       const validationErrors = error.response?.data?.errors;
 
       if (Array.isArray(validationErrors)) {
-        validationErrors.forEach((message) => toast.error(message));
+        validationErrors.forEach((message) => {
+          toast.error(message);
+        });
       } else {
         toast.error(
           error.response?.data?.message ||
@@ -396,7 +471,9 @@ const Settings = () => {
       <div className="settings-header">
         <div>
           <h1>Website Settings</h1>
-          <p>Manage your website identity, contact details and social links.</p>
+          <p>
+            Manage your website identity, contact details and social links.
+          </p>
         </div>
 
         <div className="settings-header-actions">
@@ -430,8 +507,10 @@ const Settings = () => {
         id="website-settings-form"
         onSubmit={handleSave}
         className="settings-form"
+        noValidate
       >
-        {/* Website identity */}
+        {/* Website Identity */}
+
         <section className="settings-card">
           <div className="settings-section-heading">
             <div className="settings-section-icon">
@@ -444,45 +523,53 @@ const Settings = () => {
           </div>
 
           <div className="settings-grid">
-            {["en", "hi"].map((language) => (
-              <div className="settings-field" key={language}>
-                <label>
-                  Website Name ({language === "en" ? "English" : "Hindi"})
-                </label>
-                <input
-                  type="text"
-                  className={errors[`websiteName.${language}`] ? "has-field-error" : ""}
-                  maxLength={500}
-                  value={settings.websiteName[language]}
-                  onChange={(e) => {
-                    if (errors[`websiteName.${language}`]) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy[`websiteName.${language}`];
-                        return copy;
-                      });
+            {["en", "hi"].map((language) => {
+              const fieldName = `websiteName.${language}`;
+
+              return (
+                <div className="settings-field" key={language}>
+                  <label>
+                    Website Name (
+                    {language === "en" ? "English" : "Hindi"}
+                    ) <span className="required-mark">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    className={errors[fieldName] ? "has-field-error" : ""}
+                    value={settings.websiteName[language]}
+                    aria-invalid={Boolean(errors[fieldName])}
+                    onChange={(e) => {
+                      clearFieldError(fieldName);
+                      updateLocalized(
+                        "websiteName",
+                        language,
+                        e.target.value
+                      );
+                    }}
+                    placeholder={
+                      language === "en"
+                        ? "Enter website name"
+                        : "वेबसाइट का नाम दर्ज करें"
                     }
-                    updateLocalized(
-                      "websiteName",
-                      language,
-                      e.target.value
-                    );
-                  }}
-                  placeholder={
-                    language === "en"
-                      ? "Enter website name"
-                      : "वेबसाइट का नाम दर्ज करें"
-                  }
-                />
-                {errors[`websiteName.${language}`] && (
-                  <span className="field-error-text">{errors[`websiteName.${language}`]}</span>
-                )}
-              </div>
-            ))}
+                  />
+
+                  {errors[fieldName] && (
+                    <span className="field-error-text">
+                      {errors[fieldName]}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
         {/* Branding */}
+
         <section className="settings-card">
           <div className="settings-section-heading">
             <div className="settings-section-icon">
@@ -496,10 +583,26 @@ const Settings = () => {
 
           <div className="settings-branding-grid">
             {[
-              { key: "logo", title: "Main Logo", hint: "Website header logo" },
-              { key: "mobileLogo", title: "Mobile Logo", hint: "Logo for mobile layout" },
-              { key: "footerLogo", title: "Footer Logo", hint: "Logo displayed in footer" },
-              { key: "favicon", title: "Favicon", hint: "Browser tab icon" },
+              {
+                key: "logo",
+                title: "Main Logo",
+                hint: "Website header logo",
+              },
+              {
+                key: "mobileLogo",
+                title: "Mobile Logo",
+                hint: "Logo for mobile layout",
+              },
+              {
+                key: "footerLogo",
+                title: "Footer Logo",
+                hint: "Logo displayed in footer",
+              },
+              {
+                key: "favicon",
+                title: "Favicon",
+                hint: "Browser tab icon",
+              },
             ].map(({ key, title, hint }) => (
               <div className="settings-branding-item" key={key}>
                 <div className="settings-branding-title">
@@ -544,6 +647,7 @@ const Settings = () => {
                   ) : (
                     <Upload size={16} />
                   )}
+
                   {uploading[key] ? "Uploading..." : "Upload Image"}
 
                   <input
@@ -561,7 +665,8 @@ const Settings = () => {
           </div>
         </section>
 
-        {/* Contact */}
+        {/* Contact Information */}
+
         <section className="settings-card">
           <div className="settings-section-heading">
             <div className="settings-section-icon">
@@ -575,50 +680,65 @@ const Settings = () => {
 
           <div className="settings-contact-grid">
             {[
-              { key: "mobile", label: "Mobile Number", placeholder: "+91 9876543210" },
-              { key: "whatsapp", label: "WhatsApp Number", placeholder: "+91 9876543210" },
-              { key: "email", label: "Contact Email", placeholder: "contact@example.com" },
-            ].map(({ key, label, placeholder }) => (
-              <div className="settings-field" key={key}>
-                <div className="settings-label-row">
-                  <label>{label}</label>
-                  <label className="settings-inline-switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.contact[key].isVisible}
-                      onChange={(e) =>
-                        updateContactField(
-                          key,
-                          "isVisible",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    Visible
-                  </label>
-                </div>
+              {
+                key: "mobile",
+                label: "Mobile Number",
+                placeholder: "+91 9876543210",
+              },
+              {
+                key: "whatsapp",
+                label: "WhatsApp Number",
+                placeholder: "+91 9876543210",
+              },
+              {
+                key: "email",
+                label: "Contact Email",
+                placeholder: "contact@example.com",
+              },
+            ].map(({ key, label, placeholder }) => {
+              const fieldName = `contact.${key}`;
 
-                <input
-                  type={key === "email" ? "email" : "tel"}
-                  className={errors[`contact.${key}`] ? "has-field-error" : ""}
-                  value={settings.contact[key].value}
-                  placeholder={placeholder}
-                  onChange={(e) => {
-                    if (errors[`contact.${key}`]) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy[`contact.${key}`];
-                        return copy;
-                      });
-                    }
-                    updateContactField(key, "value", e.target.value);
-                  }}
-                />
-                {errors[`contact.${key}`] && (
-                  <span className="field-error-text">{errors[`contact.${key}`]}</span>
-                )}
-              </div>
-            ))}
+              return (
+                <div className="settings-field" key={key}>
+                  <div className="settings-label-row">
+                    <label>{label}</label>
+
+                    <label className="settings-inline-switch">
+                      <input
+                        type="checkbox"
+                        checked={settings.contact[key].isVisible}
+                        onChange={(e) =>
+                          updateContactField(
+                            key,
+                            "isVisible",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      Visible
+                    </label>
+                  </div>
+
+                  <input
+                    type={key === "email" ? "email" : "tel"}
+                    className={errors[fieldName] ? "has-field-error" : ""}
+                    value={settings.contact[key].value}
+                    placeholder={placeholder}
+                    aria-invalid={Boolean(errors[fieldName])}
+                    onChange={(e) => {
+                      clearFieldError(fieldName);
+                      updateContactField(key, "value", e.target.value);
+                    }}
+                  />
+
+                  {errors[fieldName] && (
+                    <span className="field-error-text">
+                      {errors[fieldName]}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="settings-grid settings-address-grid">
@@ -627,6 +747,7 @@ const Settings = () => {
                 <label>
                   Address ({language === "en" ? "English" : "Hindi"})
                 </label>
+
                 <textarea
                   rows={3}
                   maxLength={500}
@@ -659,7 +780,9 @@ const Settings = () => {
             <label>
               <span>
                 <strong>Show contact information in footer</strong>
-                <small>Display contact details in the website footer.</small>
+                <small>
+                  Display contact details in the website footer.
+                </small>
               </span>
               <input
                 type="checkbox"
@@ -677,7 +800,9 @@ const Settings = () => {
             <label>
               <span>
                 <strong>Enable floating WhatsApp button</strong>
-                <small>Show the WhatsApp contact button on the website.</small>
+                <small>
+                  Show the WhatsApp contact button on the website.
+                </small>
               </span>
               <input
                 type="checkbox"
@@ -694,7 +819,8 @@ const Settings = () => {
           </div>
         </section>
 
-        {/* Social media */}
+        {/* Social Media */}
+
         <section className="settings-card">
           <div className="settings-section-heading">
             <div className="settings-section-icon">
@@ -702,7 +828,9 @@ const Settings = () => {
             </div>
             <div>
               <h2>Social Media Links</h2>
-              <p>Configure your social media profiles and display options.</p>
+              <p>
+                Configure your social media profiles and display options.
+              </p>
             </div>
           </div>
 
@@ -710,7 +838,9 @@ const Settings = () => {
             <label>
               <span>
                 <strong>Enable social links in header</strong>
-                <small>Allow active social links to appear in the header.</small>
+                <small>
+                  Allow active social links to appear in the header.
+                </small>
               </span>
               <input
                 type="checkbox"
@@ -728,7 +858,9 @@ const Settings = () => {
             <label>
               <span>
                 <strong>Enable social links in footer</strong>
-                <small>Allow active social links to appear in the footer.</small>
+                <small>
+                  Allow active social links to appear in the footer.
+                </small>
               </span>
               <input
                 type="checkbox"
@@ -745,86 +877,98 @@ const Settings = () => {
           </div>
 
           <div className="settings-social-list">
-            {settings.socialLinks.map((item) => (
-              <div className="settings-social-item" key={item.platform}>
-                <div className="settings-social-top">
-                  <h3>{item.platform.charAt(0).toUpperCase() + item.platform.slice(1)}</h3>
+            {settings.socialLinks.map((item) => {
+              const fieldName = `social.${item.platform}`;
 
-                  <label className="settings-inline-switch">
-                    <input
-                      type="checkbox"
-                      checked={item.isActive}
-                      onChange={(e) =>
-                        updateSocialLink(
-                          item.platform,
-                          "isActive",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    Active
-                  </label>
+              return (
+                <div className="settings-social-item" key={item.platform}>
+                  <div className="settings-social-top">
+                    <h3>
+                      {item.platform.charAt(0).toUpperCase() +
+                        item.platform.slice(1)}
+                    </h3>
+
+                    <label className="settings-inline-switch">
+                      <input
+                        type="checkbox"
+                        checked={item.isActive}
+                        onChange={(e) => {
+                          updateSocialLink(
+                            item.platform,
+                            "isActive",
+                            e.target.checked
+                          );
+
+                          if (e.target.checked) {
+                            clearFieldError(fieldName);
+                          }
+                        }}
+                      />
+                      Active
+                    </label>
+                  </div>
+
+                  <input
+                    type="url"
+                    className={errors[fieldName] ? "has-field-error" : ""}
+                    value={item.url}
+                    placeholder={`https://${item.platform}.com/your-profile`}
+                    aria-invalid={Boolean(errors[fieldName])}
+                    onChange={(e) => {
+                      clearFieldError(fieldName);
+
+                      updateSocialLink(
+                        item.platform,
+                        "url",
+                        e.target.value
+                      );
+                    }}
+                  />
+
+                  {errors[fieldName] && (
+                    <span className="field-error-text">
+                      {errors[fieldName]}
+                    </span>
+                  )}
+
+                  <div className="settings-social-options">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={item.showInHeader}
+                        onChange={(e) =>
+                          updateSocialLink(
+                            item.platform,
+                            "showInHeader",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      Show in header
+                    </label>
+
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={item.showInFooter}
+                        onChange={(e) =>
+                          updateSocialLink(
+                            item.platform,
+                            "showInFooter",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      Show in footer
+                    </label>
+                  </div>
                 </div>
-
-                <input
-                  type="url"
-                  className={errors[`social.${item.platform}`] ? "has-field-error" : ""}
-                  value={item.url}
-                  placeholder={`https://${item.platform}.com/your-profile`}
-                  onChange={(e) => {
-                    if (errors[`social.${item.platform}`]) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy[`social.${item.platform}`];
-                        return copy;
-                      });
-                    }
-                    updateSocialLink(
-                      item.platform,
-                      "url",
-                      e.target.value
-                    );
-                  }}
-                />
-                {errors[`social.${item.platform}`] && (
-                  <span className="field-error-text">{errors[`social.${item.platform}`]}</span>
-                )}
-
-                <div className="settings-social-options">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={item.showInHeader}
-                      onChange={(e) =>
-                        updateSocialLink(
-                          item.platform,
-                          "showInHeader",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    Show in header
-                  </label>
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={item.showInFooter}
-                      onChange={(e) =>
-                        updateSocialLink(
-                          item.platform,
-                          "showInFooter",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    Show in footer
-                  </label>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
+
+        {/* Bottom Save Button */}
 
         <div className="settings-bottom-actions">
           <button

@@ -63,7 +63,7 @@ function Subcategory() {
 
         const catList = extractArray(categoryRes, "categories").filter((c) => c.isActive !== false);
 
-        // Fetch subcategories for each category to match slug
+       
         const subcategoryResults = await Promise.all(
           catList.map(async (cat) => {
             try {
@@ -267,10 +267,10 @@ function Subcategory() {
               ))}
             </div>
 
-            {/* Middle Advertisement */}
+           
             <Advertisement page="category" position="middle" />
 
-            {/* Pagination Controls */}
+           
             {pagination && pagination.totalPages > 1 && (
               <div className="subcategory-pagination-bar">
                 <button

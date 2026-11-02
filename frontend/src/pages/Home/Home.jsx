@@ -51,7 +51,7 @@ const Home = () => {
       setLatestNews(Array.isArray(data.latestNews) ? data.latestNews : []);
       setTrendingNews(Array.isArray(data.trendingNews) ? data.trendingNews : []);
 
-      // Filter category sections that have valid news
+      
       const validCategories = (Array.isArray(data.categorySections) ? data.categorySections : []).filter(
         (sec) => sec.category && Array.isArray(sec.news) && sec.news.length > 0
       );
@@ -90,16 +90,16 @@ const Home = () => {
 
   return (
     <div className="homepage-container">
-      {/* 1. TOP ADVERTISEMENT */}
+    
       <div className="container">
         <Advertisement page="homepage" position="top" />
       </div>
 
-      {/* 2. BREAKING NEWS TICKER */}
+      
       <BreakingNews news={breakingNews} />
 
       <div className="container homepage-main-layout">
-        {/* Loading State with Skeletons */}
+       
         {loading && (
           <div className="homepage-skeleton-grid">
             <div className="skeleton skeleton-hero" />
@@ -111,7 +111,7 @@ const Home = () => {
           </div>
         )}
 
-        {/* Error State with Retry Button */}
+      
         {error && !loading && (
           <div className="homepage-error-box">
             <AlertCircle size={28} className="error-icon" />
@@ -132,7 +132,7 @@ const Home = () => {
 
         {!loading && !error && (
           <>
-            {/* 3. HERO MAGAZINE SECTION */}
+           
             {leadStory && (
               <section className="hero-magazine-section">
                 <div className="hero-grid">

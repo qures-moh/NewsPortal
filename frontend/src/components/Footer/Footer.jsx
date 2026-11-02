@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -6,7 +7,6 @@ import {
   Phone,
   MessageCircle,
   MapPin,
-  CheckCircle,
 } from "lucide-react";
 
 import { useLanguage } from "../../context/LanguageContext";
@@ -19,23 +19,40 @@ import "./Footer.css";
 
 const Footer = () => {
   const { language } = useLanguage();
-  const { settings, branding, contact, socialLinks, socialDisplay, websiteName, tags } = useSettings();
+  const {
+    settings,
+    branding,
+    contact,
+    socialLinks,
+    socialDisplay,
+    websiteName,
+    tags,
+  } = useSettings();
 
   const [categories, setCategories] = useState([]);
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
   const isHindi = language === "hi";
 
   useEffect(() => {
     let isMounted = true;
+
     api
       .get("/categories")
       .then((res) => {
         if (!isMounted) return;
-        const raw = res.data?.categories || res.data?.data?.categories || res.data?.data || [];
-        setCategories(Array.isArray(raw) ? raw.filter((c) => c.isActive !== false) : []);
+
+        const raw =
+          res.data?.categories ||
+          res.data?.data?.categories ||
+          res.data?.data ||
+          [];
+
+        setCategories(
+          Array.isArray(raw)
+            ? raw.filter((c) => c.isActive !== false)
+            : []
+        );
       })
       .catch(() => {});
 
@@ -48,23 +65,16 @@ const Footer = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (!newsletterEmail.trim()) return;
-    setSubscribed(true);
-    setTimeout(() => {
-      setNewsletterEmail("");
-      setSubscribed(false);
-    }, 4000);
-  };
+  const currentWebsiteName =
+    getLocalizedValue(websiteName, language) ||
+    (isHindi ? "दैनिक समाचार" : "THE CHRONICLE");
 
-  const currentWebsiteName = getLocalizedValue(websiteName, language) || (isHindi ? "दैनिक समाचार" : "THE CHRONICLE");
   const footerLogoUrl =
     branding?.footerLogo?.isVisible && branding?.footerLogo?.url
       ? getImageUrl(branding.footerLogo.url)
       : branding?.logo?.isVisible && branding?.logo?.url
-      ? getImageUrl(branding.logo.url)
-      : null;
+        ? getImageUrl(branding.logo.url)
+        : null;
 
   const footerSocials = socialDisplay?.showInFooter
     ? socialLinks.filter((s) => s.isActive && s.showInFooter && s.url)
@@ -80,47 +90,8 @@ const Footer = () => {
 
   return (
     <footer className="site-footer">
-      {/* 1. NEWSLETTER STRIP */}
-      <div className="footer-newsletter-strip">
-        <div className="container newsletter-inner">
-          <div className="newsletter-text">
-            <h3>{isHindi ? "दैनिक समाचार बुलेटिन" : "THE MORNING BRIEFING"}</h3>
-            <p>
-              {isHindi
-                ? "देश-विदेश की महत्वपूर्ण खबरें और संपादकीय विश्लेषण सीधे अपने इनबॉक्स में पाएं।"
-                : "Get essential headlines, investigative reports, and opinion delivered to your inbox every morning."}
-            </p>
-          </div>
-
-          <form className="newsletter-form" onSubmit={handleSubscribe}>
-            {subscribed ? (
-              <div className="newsletter-success">
-                <CheckCircle size={18} />
-                <span>{isHindi ? "सदस्यता के लिए धन्यवाद!" : "Thank you for subscribing!"}</span>
-              </div>
-            ) : (
-              <>
-                <input
-                  type="email"
-                  required
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder={isHindi ? "अपना ईमेल दर्ज करें..." : "Enter your email address..."}
-                  className="newsletter-input"
-                />
-                <button type="submit" className="newsletter-submit-btn">
-                  <span>{isHindi ? "सदस्यता लें" : "Subscribe"}</span>
-                </button>
-              </>
-            )}
-          </form>
-        </div>
-      </div>
-
-      {/* 2. MAIN FOOTER DIRECTORY */}
       <div className="footer-main-section">
         <div className="container footer-grid">
-          {/* Column 1: Brand & Bio */}
           <div className="footer-col footer-col-brand">
             <Link to="/" className="footer-brand" onClick={scrollToTop}>
               {footerLogoUrl && !logoError ? (
@@ -131,13 +102,14 @@ const Footer = () => {
                   onError={() => setLogoError(true)}
                 />
               ) : (
-                <span className="footer-brand-title">{currentWebsiteName}</span>
+                <span className="footer-brand-title">
+                  {currentWebsiteName}
+                </span>
               )}
             </Link>
 
             <p className="footer-brand-desc">{footerDescription}</p>
 
-            {/* Social Media Links */}
             {footerSocials.length > 0 && (
               <div className="footer-social-links">
                 {footerSocials.map((social, idx) => (
@@ -157,17 +129,24 @@ const Footer = () => {
             )}
           </div>
 
-          {/* Column 2: News Categories */}
           <div className="footer-col">
-            <h4 className="footer-col-title">{isHindi ? "प्रमुख श्रेणियां" : "NEWS DESKS"}</h4>
+            <h4 className="footer-col-title">
+              {isHindi ? "प्रमुख श्रेणियां" : "NEWS DESKS"}
+            </h4>
+
             <ul className="footer-links-list">
               <li>
-                <Link to="/" onClick={scrollToTop}>{isHindi ? "होम पेज" : "Home / Top Stories"}</Link>
+                <Link to="/" onClick={scrollToTop}>
+                  {isHindi ? "होम पेज" : "Home / Top Stories"}
+                </Link>
               </li>
+
               {categories.slice(0, 7).map((cat) => {
                 const name = getLocalizedValue(cat.name, language);
                 const slug = getLocalizedValue(cat.slug, language);
+
                 if (!name || !slug) return null;
+
                 return (
                   <li key={cat._id}>
                     <Link to={`/category/${slug}`} onClick={scrollToTop}>
@@ -179,12 +158,18 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Column 3: Trending Topics / Tags */}
           <div className="footer-col">
-            <h4 className="footer-col-title">{isHindi ? "ट्रेंडिंग विषय" : "TRENDING TOPICS"}</h4>
+            <h4 className="footer-col-title">
+              {isHindi ? "ट्रेंडिंग विषय" : "TRENDING TOPICS"}
+            </h4>
+
             <div className="footer-tags-cloud">
               {tags.slice(0, 10).map((t) => {
-                const tagName = getLocalizedValue(t.name, language) || t.name?.en || t.slug;
+                const tagName =
+                  getLocalizedValue(t.name, language) ||
+                  t.name?.en ||
+                  t.slug;
+
                 return (
                   <Link
                     key={t._id || t.slug}
@@ -199,10 +184,11 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Column 4: Contact & Editorial Office */}
           {contact?.showContactInFooter && (
             <div className="footer-col footer-col-contact">
-              <h4 className="footer-col-title">{isHindi ? "संपादकीय कार्यालय" : "EDITORIAL DESK"}</h4>
+              <h4 className="footer-col-title">
+                {isHindi ? "संपादकीय कार्यालय" : "EDITORIAL DESK"}
+              </h4>
 
               {addressText && contact?.address?.isVisible && (
                 <div className="footer-contact-item">
@@ -214,14 +200,18 @@ const Footer = () => {
               {contact?.email?.isVisible && contact?.email?.value && (
                 <div className="footer-contact-item">
                   <Mail size={16} className="contact-icon" />
-                  <a href={`mailto:${contact.email.value}`}>{contact.email.value}</a>
+                  <a href={`mailto:${contact.email.value}`}>
+                    {contact.email.value}
+                  </a>
                 </div>
               )}
 
               {contact?.mobile?.isVisible && contact?.mobile?.value && (
                 <div className="footer-contact-item">
                   <Phone size={16} className="contact-icon" />
-                  <a href={`tel:${contact.mobile.value}`}>{contact.mobile.value}</a>
+                  <a href={`tel:${contact.mobile.value}`}>
+                    {contact.mobile.value}
+                  </a>
                 </div>
               )}
 
@@ -242,19 +232,25 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* 3. COPYRIGHT & LEGAL BAR */}
       <div className="footer-bottom-bar">
         <div className="container bottom-bar-inner">
           <p className="copyright-text">
-            © {new Date().getFullYear()} {currentWebsiteName}. {isHindi ? "सर्वाधिकार सुरक्षित।" : "All rights reserved."}
+            © {new Date().getFullYear()} {currentWebsiteName}.{" "}
+            {isHindi ? "सर्वाधिकार सुरक्षित।" : "All rights reserved."}
           </p>
 
           <div className="footer-legal-links">
-            <Link to="/">{isHindi ? "गोपनीयता नीति" : "Privacy Policy"}</Link>
+            <Link to="/">
+              {isHindi ? "गोपनीयता नीति" : "Privacy Policy"}
+            </Link>
             <span className="dot-divider">•</span>
-            <Link to="/">{isHindi ? "नियम एवं शर्तें" : "Terms of Service"}</Link>
+            <Link to="/">
+              {isHindi ? "नियम एवं शर्तें" : "Terms of Service"}
+            </Link>
             <span className="dot-divider">•</span>
-            <Link to="/">{isHindi ? "आचार संहिता" : "Editorial Code"}</Link>
+            <Link to="/">
+              {isHindi ? "आचार संहिता" : "Editorial Code"}
+            </Link>
           </div>
 
           <button

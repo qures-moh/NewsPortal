@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -17,37 +18,66 @@ import "./Header.css";
 
 const Header = ({ onMenuToggle }) => {
   const { language, changeLanguage } = useLanguage();
-  const { branding, socialLinks, socialDisplay, websiteName, tags } = useSettings();
+  const { branding, socialLinks, socialDisplay, websiteName, tags } =
+    useSettings();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [logoError, setLogoError] = useState(false);
-  const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
+  const navigate = useNavigate();
   const isHindi = language === "hi";
 
-  // Formatted date string in English or Hindi locale
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const formatted = now.toLocaleDateString(isHindi ? "hi-IN" : "en-US", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-      setCurrentDate(formatted);
+
+      setCurrentDate(
+        now.toLocaleDateString(isHindi ? "hi-IN" : "en-US", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      );
     };
 
     updateTime();
+
     const timer = setInterval(updateTime, 60000);
+
     return () => clearInterval(timer);
   }, [isHindi]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 150);
+    };
+
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   const handleSearch = (e) => {
     e.preventDefault();
+
     const query = searchQuery.trim();
+
     if (!query) return;
+
     navigate(`/search?q=${encodeURIComponent(query)}`);
+
+    setSearchQuery("");
+    setIsMobileSearchOpen(false);
   };
 
   const currentWebsiteName =
@@ -59,20 +89,44 @@ const Header = ({ onMenuToggle }) => {
       ? getImageUrl(branding.logo.url)
       : null;
 
-  // Active header social channels
   const headerSocials = socialDisplay?.showInHeader
-    ? socialLinks.filter((s) => s.isActive && s.showInHeader && s.url)
+    ? socialLinks.filter(
+        (social) => social.isActive && social.showInHeader && social.url
+      )
     : [];
 
-  // Top trending tags from admin
-  const topTags = Array.isArray(tags) ? tags.slice(0, 5) : [];
+  const topTags = useMemo(() => {
+    if (!Array.isArray(tags)) return [];
+
+    return tags
+      .filter((tag) => tag?.isActive !== false && tag?.isTrending !== false)
+      .map((tag) => {
+        const tagName =
+          getLocalizedValue(tag?.name, language) ||
+          getLocalizedValue(tag?.name, "en");
+
+        const tagSlug =
+          getLocalizedValue(tag?.slug, language) ||
+          getLocalizedValue(tag?.slug, "en");
+
+        return {
+          ...tag,
+          tagName,
+          tagSlug,
+        };
+      })
+      .filter((tag) => tag.tagName && tag.tagSlug)
+      .sort(
+        (a, b) =>
+          (a.trendingOrder || 0) - (b.trendingOrder || 0)
+      )
+      .slice(0, 5);
+  }, [tags, language]);
 
   return (
-    <header className="db-site-header">
-      {/* 1. TOP UTILITY STRIP (Date, Edition, Language, Socials) */}
+    <header className={`db-site-header ${isScrolled ? "db-header-scrolled" : ""}`}>
       <div className="db-top-bar">
         <div className="container db-top-bar-inner">
-          {/* Left: Date, Edition, Trending */}
           <div className="db-top-left">
             <span className="db-date-display">
               <Calendar size={13} className="db-top-icon" />
@@ -81,47 +135,55 @@ const Header = ({ onMenuToggle }) => {
 
             <span className="db-edition-pill">
               <span className="db-edition-dot" />
-              <span>{isHindi ? "राष्ट्रीय संस्करण" : "National Edition"}</span>
+              <span>
+                {isHindi ? "राष्ट्रीय संस्करण" : "National Edition"}
+              </span>
             </span>
 
-            {/* Trending Tags Ticker */}
             {topTags.length > 0 && (
               <div className="db-top-trending">
                 <span className="db-trending-label">
                   <Flame size={13} className="db-flame-icon" />
                   <span>{isHindi ? "ट्रेंडिंग:" : "Trending:"}</span>
                 </span>
+
                 <div className="db-tags-scroll">
-                  {topTags.map((t) => {
-                    const tagName = getLocalizedValue(t.name, language) || t.name?.en || t.slug;
-                    return (
-                      <Link
-                        key={t._id || t.slug}
-                        to={`/search?tag=${encodeURIComponent(t.slug || tagName)}`}
-                        className="db-tag-pill"
-                      >
-                        #{tagName}
-                      </Link>
-                    );
-                  })}
+                  {topTags.map((tag) => (
+                    <Link
+                      key={tag._id}
+                      to={`/search?tag=${encodeURIComponent(
+                        tag.tagSlug
+                      )}&tagName=${encodeURIComponent(tag.tagName)}`}
+                      className="db-tag-pill"
+                      aria-label={
+                        isHindi
+                          ? `${tag.tagName} टैग की खबरें देखें`
+                          : `View news tagged ${tag.tagName}`
+                      }
+                    >
+                      #{tag.tagName}
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right: e-Paper, Socials, Language Switcher */}
           <div className="db-top-right">
-            <Link to="/" className="db-epaper-badge" title={isHindi ? "ई-पेपर" : "e-Paper"}>
+            <Link
+              to="/"
+              className="db-epaper-badge"
+              title={isHindi ? "ई-पेपर" : "e-Paper"}
+            >
               <FileText size={13} />
               <span>{isHindi ? "ई-पेपर" : "e-Paper"}</span>
             </Link>
 
-            {/* Active Social Media */}
             {headerSocials.length > 0 && (
               <div className="db-social-group">
-                {headerSocials.map((social, index) => (
+                {headerSocials.map((social) => (
                   <a
-                    key={index}
+                    key={social._id}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -135,20 +197,27 @@ const Header = ({ onMenuToggle }) => {
               </div>
             )}
 
-            {/* Language Switcher */}
             <div className="db-language-toggle">
               <button
                 type="button"
-                className={`db-lang-choice ${language === "hi" ? "is-active" : ""}`}
+                className={`db-lang-choice ${
+                  language === "hi" ? "is-active" : ""
+                }`}
                 onClick={() => changeLanguage("hi")}
+                aria-pressed={language === "hi"}
               >
                 हिन्दी
               </button>
+
               <span className="db-lang-divider">|</span>
+
               <button
                 type="button"
-                className={`db-lang-choice ${language === "en" ? "is-active" : ""}`}
+                className={`db-lang-choice ${
+                  language === "en" ? "is-active" : ""
+                }`}
                 onClick={() => changeLanguage("en")}
+                aria-pressed={language === "en"}
               >
                 English
               </button>
@@ -157,21 +226,26 @@ const Header = ({ onMenuToggle }) => {
         </div>
       </div>
 
-      {/* 2. MAIN NEWSPAPER MASTHEAD */}
-      <div className="db-masthead">
+      <div
+        className={`db-masthead ${
+          isScrolled ? "db-masthead-sticky" : ""
+        }`}
+      >
         <div className="container db-masthead-inner">
-          {/* Mobile menu button */}
           <button
             type="button"
             className="db-mobile-toggle-btn"
             onClick={onMenuToggle}
-            aria-label="Open navigation menu"
+            aria-label={isHindi ? "नेविगेशन मेनू खोलें" : "Open navigation menu"}
           >
             <Menu size={22} />
           </button>
 
-          {/* Central Newspaper Masthead Brand */}
-          <Link to="/" className="db-brand-masthead" title={currentWebsiteName}>
+          <Link
+            to="/"
+            className="db-brand-masthead"
+            title={currentWebsiteName}
+          >
             {logoUrl && !logoError ? (
               <img
                 src={logoUrl}
@@ -181,17 +255,19 @@ const Header = ({ onMenuToggle }) => {
               />
             ) : (
               <div className="db-newspaper-brand">
-                {/* Dainik Bhaskar Style Sun Crest / Emblem */}
                 <div className="db-brand-emblem-wrap">
                   <div className="db-sun-emblem">
                     <span className="emblem-center-letter">
-                      {isHindi ? (currentWebsiteName.charAt(0) || "द") : (currentWebsiteName.charAt(0) || "N")}
+                      {currentWebsiteName.charAt(0) || "N"}
                     </span>
                   </div>
                 </div>
 
                 <div className="db-brand-text-block">
-                  <h1 className="db-brand-name">{currentWebsiteName}</h1>
+                  <h1 className="db-brand-name">
+                    {currentWebsiteName}
+                  </h1>
+
                   <p className="db-brand-tagline">
                     {isHindi
                       ? "सत्य • निष्पक्षता • राष्ट्रहित — देश का अग्रणी समाचार पत्र"
@@ -202,27 +278,57 @@ const Header = ({ onMenuToggle }) => {
             )}
           </Link>
 
-          {/* Right: Live Desk & Search */}
           <div className="db-masthead-actions">
-            <form className="db-header-search" onSubmit={handleSearch}>
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isHindi ? "खबर, विषय खोजें..." : "Search dispatches..."}
-                className="db-search-input"
-              />
-              <button type="submit" className="db-search-btn" aria-label="Search">
-                <Search size={16} />
-              </button>
-            </form>
+          <button
+  type="button"
+  className="db-desktop-search-icon"
+  onClick={() => navigate("/search")}
+  aria-label={isHindi ? "खबर खोजें" : "Search news"}
+>
+  <Search size={20} />
+</button>
 
             <div className="db-live-desk-pill">
               <span className="live-pulse-dot" />
               <span>{isHindi ? "लाइव डेस्क" : "LIVE DESK"}</span>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="db-mobile-search-toggle"
+            onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+            aria-label={isHindi ? "खोजें" : "Search"}
+            aria-expanded={isMobileSearchOpen}
+          >
+            <Search size={21} />
+          </button>
         </div>
+
+        {isMobileSearchOpen && (
+          <div className="db-mobile-search-panel">
+            <form
+              className="db-mobile-search-form"
+              onSubmit={handleSearch}
+            >
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isHindi ? "खबर खोजें..." : "Search news..."}
+                autoFocus
+                aria-label={isHindi ? "खबर खोजें" : "Search news"}
+              />
+
+              <button
+                type="submit"
+                aria-label={isHindi ? "खोजें" : "Search"}
+              >
+                <Search size={18} />
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -26,13 +26,11 @@ const validateSubcategoryId = (req, res, next) => {
   next();
 };
 
-// Public routes
 router.get(
   "/category/:categoryId",
   subcategoryController.getPublicSubcategories
 );
 
-// Admin routes
 router.get(
   "/admin/all",
   ...adminOnly,

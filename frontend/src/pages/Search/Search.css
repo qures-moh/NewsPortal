@@ -1,6 +1,7 @@
-/* Search Page Styles */
+
 .search-view-page {
   padding-bottom: 50px;
+  min-width: 0;
 }
 
 .search-masthead-banner {
@@ -9,26 +10,27 @@
   border: 1px solid var(--border-light);
   border-left: 5px solid var(--primary);
   border-radius: var(--radius-sm);
-  padding: 32px 36px;
-  margin: 20px 0 32px;
+  padding: 22px 28px;
+  margin: 16px 0 24px;
   box-shadow: var(--shadow-sm);
 }
 
 .search-heading-title {
   font-family: var(--font-masthead);
-  font-size: 30px;
+  font-size: 27px;
   font-weight: 900;
   color: var(--text-headline);
   letter-spacing: -0.01em;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   text-transform: uppercase;
+  line-height: 1.25;
 }
 
 .search-heading-desc {
   font-size: 14px;
   color: var(--text-secondary);
   max-width: 640px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   line-height: 1.5;
 }
 
@@ -37,12 +39,13 @@
   align-items: center;
   gap: 12px;
   max-width: 720px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .search-input-wrap {
   position: relative;
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
 }
@@ -56,11 +59,12 @@
 
 .search-main-input {
   width: 100%;
-  padding: 12px 44px 12px 48px;
+  min-width: 0;
+  padding: 10px 44px 10px 48px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-main);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -85,11 +89,11 @@
 }
 
 .search-submit-btn {
-  padding: 12px 28px;
+  padding: 10px 26px;
   background-color: var(--primary);
   color: #FFFFFF;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -101,13 +105,12 @@
   background-color: var(--primary-dark);
 }
 
-/* Filters row */
 .search-filters-row {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
   flex-wrap: wrap;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-light);
 }
 
@@ -126,10 +129,11 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .filter-select {
-  padding: 7px 12px;
+  padding: 6px 12px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
@@ -139,6 +143,7 @@
   outline: none;
   cursor: pointer;
   transition: border-color var(--transition-fast);
+  min-width: 150px;
 }
 
 .filter-select:focus {
@@ -150,14 +155,13 @@
   color: var(--text-main);
 }
 
-/* Results infobar */
 .search-results-infobar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 14px;
   border-bottom: 2px solid var(--text-main);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   gap: 16px;
 }
 
@@ -166,6 +170,7 @@
   font-size: 20px;
   font-weight: 800;
   color: var(--text-main);
+  line-height: 1.4;
 }
 
 .search-term-highlight {
@@ -178,14 +183,14 @@
   text-transform: uppercase;
   color: var(--text-secondary);
   background-color: var(--bg-surface);
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
-/* Skeletons */
 .search-skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   margin-bottom: 40px;
 }
@@ -194,15 +199,14 @@
   height: 320px;
 }
 
-/* Articles grid */
 .search-articles-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   margin-bottom: 36px;
+  min-width: 0;
 }
 
-/* Pagination */
 .search-pagination-bar {
   display: flex;
   align-items: center;
@@ -213,10 +217,9 @@
   border-top: 1px solid var(--border-light);
 }
 
-/* Empty State */
 .search-empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 45px 20px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -243,25 +246,113 @@
 @media (max-width: 1024px) {
   .search-articles-grid,
   .search-skeleton-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .search-masthead-banner {
+    padding: 20px 24px;
   }
 }
 
 @media (max-width: 640px) {
-  .search-masthead-banner {
-    padding: 24px;
+  .search-view-page {
+    padding-bottom: 30px;
   }
+
+  .search-masthead-banner {
+    padding: 18px 16px;
+    margin: 12px 0 20px;
+  }
+
+  .search-heading-title {
+    font-size: 21px;
+  }
+
+  .search-heading-desc {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
   .search-main-form {
     flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+    max-width: 100%;
   }
+
+  .search-main-input {
+    padding: 11px 40px 11px 44px;
+  }
+
   .search-submit-btn {
     width: 100%;
+    padding: 11px 20px;
   }
-  .search-heading-title {
-    font-size: 22px;
+
+  .search-filters-row {
+    gap: 12px;
+    padding-top: 12px;
   }
+
+  .filter-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-select {
+    flex: 1;
+    max-width: 65%;
+    min-width: 0;
+  }
+
+  .search-results-infobar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+  }
+
+  .search-results-infobar h2 {
+    font-size: 16px;
+  }
+
   .search-articles-grid,
   .search-skeleton-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .search-pagination-bar {
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .search-empty-state {
+    padding: 35px 16px;
+  }
+
+  .search-empty-state h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 375px) {
+  .search-masthead-banner {
+    padding: 16px 12px;
+  }
+
+  .search-heading-title {
+    font-size: 19px;
+  }
+
+  .filter-item label {
+    font-size: 11px;
+  }
+
+  .filter-select {
+    font-size: 12px;
   }
 }

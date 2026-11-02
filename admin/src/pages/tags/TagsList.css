@@ -93,6 +93,44 @@
   font-weight: 700;
 }
 
+/* Trending Summary */
+
+.tags-trending-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px;
+  margin-bottom: 18px;
+  border: 1px solid #e9eaf0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tags-trending-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a66a20;
+}
+
+.tags-trending-summary strong {
+  color: #292d43;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tags-trending-summary > span {
+  padding: 6px 11px;
+  border-radius: 20px;
+  background: #fff5e8;
+  color: #a66a20;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Content */
+
 .tags-content-card {
   overflow: hidden;
   border: 1px solid #e9eaf0;
@@ -161,7 +199,7 @@
 
 .tags-table {
   width: 100%;
-  min-width: 850px;
+  min-width: 950px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -217,6 +255,8 @@
   white-space: nowrap;
 }
 
+/* Status */
+
 .tags-status {
   display: inline-flex;
   align-items: center;
@@ -235,6 +275,115 @@
   background: #fff0ed;
   color: #d35d4e;
 }
+
+/* Trending Controls */
+
+.tags-trending-control {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 28px;
+}
+
+.tags-trending-toggle {
+  position: relative;
+  display: inline-flex;
+  width: 38px;
+  height: 21px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.tags-trending-toggle input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.tags-trending-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #dfe1e8;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.tags-trending-slider::before {
+  position: absolute;
+  content: "";
+  width: 15px;
+  height: 15px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.tags-trending-toggle input:checked + .tags-trending-slider {
+  background: #d69a42;
+}
+
+.tags-trending-toggle input:checked + .tags-trending-slider::before {
+  transform: translateX(17px);
+}
+
+.tags-trending-toggle input:focus-visible + .tags-trending-slider {
+  outline: 3px solid rgba(119, 112, 215, 0.25);
+  outline-offset: 2px;
+}
+
+.tags-trending-toggle input:disabled + .tags-trending-slider {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tags-trending-selected {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: #fff4e5;
+  color: #a66a20;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tags-trending-inactive {
+  color: #a0a3b0;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tags-trending-order {
+  width: 125px;
+  height: 31px;
+  margin-top: 8px;
+  padding: 0 8px;
+  border: 1px solid #e5e2d9;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  color: #555a70;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.tags-trending-order:focus {
+  border-color: #d69a42;
+}
+
+.tags-trending-order:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Actions */
 
 .tags-actions {
   display: flex;
@@ -273,6 +422,8 @@
   cursor: not-allowed;
 }
 
+/* Empty State */
+
 .tags-empty {
   height: 190px;
   color: #9296a6 !important;
@@ -293,6 +444,8 @@
 .tags-empty strong {
   color: #45495e;
 }
+
+/* Pagination */
 
 .tags-pagination {
   display: flex;
@@ -338,6 +491,8 @@
   color: #555a70;
   white-space: nowrap;
 }
+
+/* Modal */
 
 .tags-modal-overlay {
   position: fixed;
@@ -469,6 +624,21 @@
   color: #adb0bd;
 }
 
+.tags-language-section input.has-field-error,
+.tags-language-section textarea.has-field-error {
+  border-color: #e05b50;
+}
+
+.field-required-mark {
+  color: #e05b50;
+}
+
+.field-error-text {
+  color: #d95343;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .tags-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -506,6 +676,8 @@
     transform: rotate(360deg);
   }
 }
+
+/* Responsive */
 
 @media (max-width: 700px) {
   .tags-page {
@@ -553,6 +725,10 @@
 
   .tags-status-filter {
     width: 100%;
+  }
+
+  .tags-trending-summary {
+    padding: 13px;
   }
 
   .tags-pagination {

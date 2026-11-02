@@ -4,12 +4,9 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import {
   Clock,
-  Eye,
-  Calendar,
   Share2,
   Printer,
   ChevronRight,
-  User,
   Check,
   Copy,
   MessageCircle,
@@ -23,7 +20,6 @@ import {
   Lightbulb,
   Heart,
   TrendingUp,
-  Award,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -38,8 +34,6 @@ import { getImageUrl, getNewsPlaceholder } from "../../utils/imageUrl";
 import {
   getLocalizedArticle,
   getLocalizedValue,
-  formatNewsDate,
-  calculateReadingTime,
 } from "../../utils/newsHelpers";
 import "./ArticleDetails.css";
 
@@ -48,9 +42,7 @@ const ArticleDetails = () => {
   const { language: activeLanguage } = useLanguage();
   const navigate = useNavigate();
 
-  // The language selector in LanguageContext is the source of truth.
-  // routeLanguage is kept in sync with it so the URL uses the matching
-  // localized article slug.
+
   const language = activeLanguage === "hi" ? "hi" : "en";
 
   const isHindi = language === "hi";
@@ -64,7 +56,7 @@ const ArticleDetails = () => {
   const [copied, setCopied] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
-  // Reactions state
+
   const [reactions, setReactions] = useState({
     helpful: 34,
     informative: 58,
@@ -73,12 +65,10 @@ const ArticleDetails = () => {
 
   const [userReaction, setUserReaction] = useState(null);
 
-  // Fetch article by language and slug
+
   useEffect(() => {
     const controller = new AbortController();
-    // The current URL slug belongs to routeLanguage. Use that language to
-    // resolve the existing URL first; the sync effect below then navigates
-    // to the selected language's localized slug.
+ 
     const lookupLanguage = ["en", "hi"].includes(routeLanguage)
       ? routeLanguage
       : language;
@@ -158,7 +148,7 @@ const ArticleDetails = () => {
     navigate(nextPath, { replace: true });
   }, [article?._id, language, routeLanguage, slug, navigate]);
 
-  // Increment view count
+ 
   useEffect(() => {
     if (!article?._id) return;
 
@@ -314,18 +304,10 @@ const ArticleDetails = () => {
     language
   );
 
-  const publishedDate = formatNewsDate(
-    article.publishedAt || article.createdAt,
-    language
-  );
-
-  const readTime = calculateReadingTime(content, language);
-  const views = article.views || 0;
-
   const currentUrl =
     typeof window !== "undefined" ? window.location.href : "";
 
-  // Copy Link
+
   const handleCopyLink = async () => {
     try {
       if (!navigator.clipboard) {
@@ -354,12 +336,12 @@ const ArticleDetails = () => {
     }
   };
 
-  // Print article
+  
   const handlePrint = () => {
     window.print();
   };
 
-  // Bookmark article
+
   const handleBookmarkToggle = () => {
     setBookmarked((prev) => !prev);
 
@@ -500,63 +482,9 @@ const ArticleDetails = () => {
             </div>
           )}
 
-          {/* Byline & Metadata Row */}
+          {/* Article Toolbar */}
           <div className="article-byline-bar">
-            <div className="byline-author-info">
-              {article.author?.avatar ? (
-                <img
-                  src={getImageUrl(article.author.avatar)}
-                  alt={article.author.name}
-                  className="byline-avatar-img"
-                />
-              ) : (
-                <span className="byline-avatar-placeholder">
-                  <User size={18} />
-                </span>
-              )}
-
-              <div className="byline-details">
-                <div className="byline-name-row">
-                  <span className="byline-author-name">
-                    {article.author?.name ||
-                      "Senior Political Correspondent"}
-                  </span>
-
-                  <span className="author-verified-tag">
-                    <Award size={12} />
-                    {isHindi
-                      ? "संपादकीय मंडल"
-                      : "Editorial Staff"}
-                  </span>
-                </div>
-
-                <div className="byline-time-row">
-                  <span className="byline-date">
-                    <Calendar size={13} />
-                    {publishedDate}
-                  </span>
-
-                  <span className="byline-dot">•</span>
-
-                  <span className="byline-read">
-                    <Clock size={13} />
-                    {readTime}
-                  </span>
-
-                  <span className="byline-dot">•</span>
-
-                  <span className="byline-views">
-                    <Eye size={13} />
-                    {views.toLocaleString()}{" "}
-                    {isHindi ? "व्यूज़" : "views"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Reading Mode Toolbar */}
             <div className="article-toolbar">
-              {/* Real Text-to-Speech */}
               <NewsTextToSpeech
                 title={title}
                 excerpt={excerpt}
@@ -565,12 +493,9 @@ const ArticleDetails = () => {
                 articleId={article._id}
               />
 
-              {/* Bookmark Button */}
               <button
                 type="button"
-                className={`tool-icon-btn ${
-                  bookmarked ? "bookmarked" : ""
-                }`}
+                className={`tool-icon-btn ${bookmarked ? "bookmarked" : ""}`}
                 onClick={handleBookmarkToggle}
                 title="Bookmark article"
               >
@@ -580,7 +505,6 @@ const ArticleDetails = () => {
                 />
               </button>
 
-              {/* Font Resizer */}
               <div className="font-resizer">
                 <button
                   type="button"
@@ -610,7 +534,6 @@ const ArticleDetails = () => {
                 </button>
               </div>
 
-              {/* Print */}
               <button
                 type="button"
                 className="tool-icon-btn"
@@ -756,7 +679,7 @@ const ArticleDetails = () => {
             </div>
           )}
 
-          {/* Article Prose Body */}
+         
           <div className="article-prose-body">
             {cleanHtml ? (
               <div
@@ -831,7 +754,7 @@ const ArticleDetails = () => {
             </div>
           </div>
 
-          {/* In-Article Advertisement */}
+        
           <Advertisement page="article" position="middle" />
 
           {/* Multimedia Gallery */}
@@ -901,7 +824,7 @@ const ArticleDetails = () => {
             </section>
           )}
 
-          {/* Article Tags */}
+         
           {Array.isArray(article.tags) &&
             article.tags.length > 0 && (
               <div className="article-tags-section">
@@ -941,36 +864,8 @@ const ArticleDetails = () => {
               </div>
             )}
 
-          {/* Author Bio Box */}
-          <div className="author-bio-card">
-            {article.author?.avatar ? (
-              <img
-                src={getImageUrl(article.author.avatar)}
-                alt={article.author.name}
-                className="author-bio-avatar"
-              />
-            ) : (
-              <span className="author-bio-placeholder">
-                <User size={28} />
-              </span>
-            )}
-
-            <div className="author-bio-content">
-              <h4>
-                {article.author?.name ||
-                  "Newsroom Special Correspondent"}
-              </h4>
-
-              <p>
-                {isHindi
-                  ? "राष्ट्रीय राजनीति, नीतिगत मामलों और आर्थिक सुधारों पर विशेष रिपोर्टिंग। निष्पक्ष पत्रकारिता के प्रति प्रतिबद्ध।"
-                  : "Covering national affairs, governance initiatives, and economic reforms for the Editorial Board. Focused on ground realities and verified reportage."}
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* SIDEBAR COLUMN */}
         <aside className="article-sidebar-column">
           {/* Trending / Most Read Stories */}
           <div className="sidebar-widget-box">
@@ -1007,7 +902,7 @@ const ArticleDetails = () => {
             </div>
           </div>
 
-          {/* More From This Category */}
+       
           {relatedNews.length > 0 && (
             <div className="sidebar-widget-box">
               <div className="sidebar-widget-header">
@@ -1043,7 +938,7 @@ const ArticleDetails = () => {
             </div>
           )}
 
-          {/* Newsletter Box */}
+      
           <div className="sidebar-newsletter-box">
             <span className="newsletter-badge">
               <Sparkles size={12} />
@@ -1071,7 +966,7 @@ const ArticleDetails = () => {
         </aside>
       </div>
 
-      {/* BOTTOM RELATED STORIES SECTION */}
+    
       {relatedNews.length > 0 && (
         <section className="container article-bottom-related">
           <div className="editorial-section-header has-accent">
@@ -1111,7 +1006,7 @@ const ArticleDetails = () => {
         </section>
       )}
 
-      {/* BOTTOM ADVERTISEMENT */}
+      
       <div className="container">
         <Advertisement page="article" position="bottom" />
       </div>

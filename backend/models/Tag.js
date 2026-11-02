@@ -52,6 +52,17 @@ const tagSchema = new mongoose.Schema(
       default: true,
     },
 
+    isTrending: {
+      type: Boolean,
+      default: false,
+    },
+
+    trendingOrder: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -70,16 +81,16 @@ const tagSchema = new mongoose.Schema(
   }
 );
 
-tagSchema.index(
-  { "slug.en": 1 },
-  { unique: true }
-);
+tagSchema.index({ "slug.en": 1 }, { unique: true });
 
-tagSchema.index(
-  { "slug.hi": 1 },
-  { unique: true }
-);
+tagSchema.index({ "slug.hi": 1 }, { unique: true });
 
 tagSchema.index({ isActive: 1, createdAt: -1 });
+
+tagSchema.index({
+  isActive: 1,
+  isTrending: 1,
+  trendingOrder: 1,
+});
 
 module.exports = mongoose.model("Tag", tagSchema);

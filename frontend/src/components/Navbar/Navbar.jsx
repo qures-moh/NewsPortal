@@ -43,7 +43,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
 
   const isHindi = language === "hi";
 
-  // Fetch categories and subcategories
+  
   useEffect(() => {
     const controller = new AbortController();
 
@@ -60,7 +60,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
         const activeCategories = categoryData.filter((c) => c.isActive !== false);
         setCategories(activeCategories);
 
-        // Fetch subcategories for each active category
+       
         const subcategoryResults = await Promise.all(
           activeCategories.map(async (category) => {
             try {
@@ -94,7 +94,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
     return () => controller.abort();
   }, []);
 
-  // Keyboard accessibility and body lock
+  
   useEffect(() => {
     if (!isMenuOpen) return;
     const handleKeyDown = (e) => {
@@ -142,7 +142,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
 
   return (
     <>
-      {/* DESKTOP STICKY NAVBAR */}
+    
       <nav className="mega-navbar">
         <div className="container navbar-container">
           <ul className="navbar-nav">
@@ -167,7 +167,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
                     {subcategories.length > 0 && <ChevronDown size={14} className="dropdown-arrow" />}
                   </NavLink>
 
-                  {/* Dropdown Menu */}
+                 
                   {subcategories.length > 0 && (
                     <div className="nav-dropdown-menu">
                       <div className="dropdown-header">
@@ -199,7 +199,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
               );
             })}
 
-            {/* Overflow "More" Dropdown */}
+            
             {overflowCategories.length > 0 && (
               <li className="nav-item has-dropdown">
                 <button type="button" className="nav-link more-nav-link">
@@ -226,7 +226,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
         </div>
       </nav>
 
-      {/* MOBILE DRAWER BACKDROP */}
+     
       <div
         className={`mobile-backdrop ${isMenuOpen ? "active" : ""}`}
         onClick={onCloseMenu}
@@ -258,7 +258,6 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
           </button>
         </div>
 
-        {/* Mobile Search */}
         <div className="mobile-drawer-search">
           <form onSubmit={handleMobileSearch} className="mobile-search-form">
             <input
@@ -274,7 +273,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
           </form>
         </div>
 
-        {/* Mobile Language Switcher */}
+     
         <div className="mobile-lang-row">
           <span className="mobile-lang-label">{isHindi ? "भाषा:" : "Language:"}</span>
           <div className="mobile-lang-toggle">
@@ -356,7 +355,7 @@ const Navbar = ({ isMenuOpen, onCloseMenu }) => {
           })}
         </nav>
 
-        {/* Mobile Contact & Social Details */}
+       
         <div className="mobile-drawer-footer">
           {contact?.email?.isVisible && contact?.email?.value && (
             <div className="mobile-contact-line">

@@ -108,6 +108,44 @@ const updateTagStatus = async (req, res) => {
   });
 };
 
+const updateTagTrending = async (req, res) => {
+  const { isTrending, trendingOrder } = req.body;
+
+  if (typeof isTrending !== "boolean") {
+    return res.status(400).json({
+      success: false,
+      message: "isTrending must be a boolean",
+    });
+  }
+
+  if (
+    isTrending &&
+    (!Number.isInteger(trendingOrder) ||
+      trendingOrder < 1 ||
+      trendingOrder > 5)
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Trending order must be an integer between 1 and 5",
+    });
+  }
+
+  const tag = await tagService.updateTagTrending(
+    req.params.id,
+    isTrending,
+    isTrending ? trendingOrder : 0,
+    req.user.id
+  );
+
+  res.status(200).json({
+    success: true,
+    message: isTrending
+      ? "Tag added to trending successfully"
+      : "Tag removed from trending successfully",
+    tag,
+  });
+};
+
 const deleteTag = async (req, res) => {
   const result = await tagService.deleteTag(req.params.id);
 
@@ -124,5 +162,6 @@ module.exports = {
   getPublicTags,
   getTagById,
   updateTagStatus,
+  updateTagTrending,
   deleteTag,
 };

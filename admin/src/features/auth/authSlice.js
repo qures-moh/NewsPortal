@@ -2,7 +2,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../services/api";
 
-// Admin login
+
 export const loginAdmin = createAsyncThunk(
   "auth/loginAdmin",
   async (credentials, { rejectWithValue }) => {
@@ -29,7 +29,7 @@ export const loginAdmin = createAsyncThunk(
   }
 );
 
-// Restore admin session after refresh
+
 export const initializeAuth = createAsyncThunk(
   "auth/initializeAuth",
   async (_, { rejectWithValue }) => {
@@ -105,7 +105,7 @@ const authSlice = createSlice({
         state.error = action.payload || "Login failed";
       })
 
-      // Restore session
+    
       .addCase(initializeAuth.pending, (state) => {
         state.checkingSession = true;
       })
@@ -124,7 +124,7 @@ const authSlice = createSlice({
         state.initialized = true;
       })
 
-      // Logout
+    
       .addCase(logoutAdmin.fulfilled, () => ({
         ...initialState,
         checkingSession: false,

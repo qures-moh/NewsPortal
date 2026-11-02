@@ -33,8 +33,7 @@ const validate = (schemas) => {
       });
     }
 
-    // Store validated data separately.
-    // Do not overwrite Express request properties.
+   
     req.validated = validatedData;
 
     next();

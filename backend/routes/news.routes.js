@@ -1,4 +1,3 @@
-
 const express = require("express");
 const { rateLimit } = require("express-rate-limit");
 
@@ -63,78 +62,47 @@ const viewRateLimiter = rateLimit({
   },
 });
 
-// ==============================
-// ADMIN ROUTES
-// ==============================
-
-router.get(
-  "/admin/all",
-  ...adminOnly,
-  newsController.getAdminNews
-);
+router.get("/admin/all", ...adminOnly, newsController.getAdminNews);
 
 router.get(
   "/admin/:id",
   ...adminOnly,
   validateNewsId,
-  newsController.getAdminNewsById
+  newsController.getAdminNewsById,
 );
 
-// ==============================
-// CREATE / UPDATE / ARCHIVE
-// ==============================
-
-router.post(
-  "/",
-  ...adminOnly,
-  validateNews,
-  newsController.createNews
-);
+router.post("/", ...adminOnly, validateNews, newsController.createNews);
 
 router.patch(
   "/:id",
   ...adminOnly,
   validateNewsId,
   validateNewsUpdate,
-  newsController.updateNews
+  newsController.updateNews,
 );
 
 router.patch(
   "/:id/archive",
   ...adminOnly,
   validateNewsId,
-  newsController.archiveNews
+  newsController.archiveNews,
 );
 
-// ==============================
-// PUBLIC ROUTES
-// ==============================
+router.get("/homepage", newsController.getHomepageData);
 
-// Homepage data - must be before parameterized routes
-router.get(
-  "/homepage",
-  newsController.getHomepageData
-);
-
-// Increment article views
 router.post(
   "/:id/views",
   validateNewsId,
   viewRateLimiter,
-  newsController.incrementNewsViews
+  newsController.incrementNewsViews,
 );
 
-// Get article details by language and slug
 router.get(
   "/:language/:slug",
   validatePublicNewsParams,
-  newsController.getPublicNewsBySlug
+  newsController.getPublicNewsBySlug,
 );
 
-// Get public news with filters and pagination
-router.get(
-  "/",
-  newsController.getPublicNews
-);
+router.get("/", newsController.getPublicNews);
 
 module.exports = router;

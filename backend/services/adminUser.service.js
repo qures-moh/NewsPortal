@@ -5,7 +5,6 @@ const escapeRegex = (value) => {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
-// Get all users with search, filters and pagination
 const getUsers = async (query) => {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
   const limit = Math.min(
@@ -58,7 +57,7 @@ const getUsers = async (query) => {
   };
 };
 
-// Get one user's details
+
 const getUserById = async (id) => {
   if (!mongoose.isValidObjectId(id)) {
     const error = new Error("Invalid user ID");
@@ -79,7 +78,6 @@ const getUserById = async (id) => {
   return user;
 };
 
-// Get user statistics
 const getUserStats = async () => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -103,7 +101,7 @@ const getUserStats = async () => {
   };
 };
 
-// Prevent removal of the last active administrator
+
 const ensureAnotherActiveAdminExists = async (user) => {
   if (user.role !== "admin" || !user.isActive) return;
 
@@ -122,7 +120,7 @@ const ensureAnotherActiveAdminExists = async (user) => {
   }
 };
 
-// Activate or deactivate a user
+
 const updateUserStatus = async (id, isActive, currentAdminId) => {
   if (!mongoose.isValidObjectId(id)) {
     const error = new Error("Invalid user ID");
@@ -166,7 +164,6 @@ const updateUserStatus = async (id, isActive, currentAdminId) => {
   };
 };
 
-// Delete a user
 const deleteUser = async (id, currentAdminId) => {
   if (!mongoose.isValidObjectId(id)) {
     const error = new Error("Invalid user ID");

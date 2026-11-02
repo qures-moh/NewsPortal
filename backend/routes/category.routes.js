@@ -1,4 +1,3 @@
-
 const express = require("express");
 
 const categoryController = require("../controllers/category.controller");
@@ -26,24 +25,22 @@ const validateCategoryId = (req, res, next) => {
   next();
 };
 
-// Public routes
 router.get("/", categoryController.getPublicCategories);
 
-// Admin routes
 router.get("/admin/all", ...adminOnly, categoryController.getAdminCategories);
 
 router.get(
   "/admin/:id",
   ...adminOnly,
   validateCategoryId,
-  categoryController.getCategoryById
+  categoryController.getCategoryById,
 );
 
 router.post(
   "/",
   ...adminOnly,
   validateCategory,
-  categoryController.createCategory
+  categoryController.createCategory,
 );
 
 router.patch(
@@ -51,21 +48,21 @@ router.patch(
   ...adminOnly,
   validateCategoryId,
   validateCategoryUpdate,
-  categoryController.updateCategory
+  categoryController.updateCategory,
 );
 
 router.patch(
   "/:id/status",
   ...adminOnly,
   validateCategoryId,
-  categoryController.updateCategoryStatus
+  categoryController.updateCategoryStatus,
 );
 
 router.delete(
   "/:id",
   ...adminOnly,
   validateCategoryId,
-  categoryController.deleteCategory
+  categoryController.deleteCategory,
 );
 
 module.exports = router;

@@ -51,11 +51,7 @@ const menuItems = [
     path: "/advertisements",
     icon: Megaphone,
   },
-  {
-    title: "Users",
-    path: "/users",
-    icon: Users,
-  },
+
   {
     title: "Settings",
     path: "/settings",

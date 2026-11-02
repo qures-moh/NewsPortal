@@ -12,6 +12,7 @@ import {
   Loader2,
   Power,
   RotateCcw,
+  Flame,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
@@ -36,6 +37,8 @@ const getErrorMessage = (error, fallback) =>
 
 const TagsList = () => {
   const [tags, setTags] = useState([]);
+  const [trendingTags, setTrendingTags] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
@@ -104,11 +107,32 @@ const TagsList = () => {
     }
   }, [page, search, status]);
 
+  const loadTrendingTags = useCallback(async () => {
+    try {
+      const response = await api.get("/tags");
+
+      if (!response.data?.success) {
+        throw new Error(
+          response.data?.message || "Unable to load trending tags"
+        );
+      }
+
+      setTrendingTags(response.data.tags || []);
+    } catch (error) {
+      toast.error(
+        getErrorMessage(error, "Unable to load trending tags")
+      );
+    }
+  }, []);
+
   useEffect(() => {
-    const timer = setTimeout(loadTags, 300);
+    const timer = setTimeout(() => {
+      loadTags();
+      loadTrendingTags();
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [loadTags]);
+  }, [loadTags, loadTrendingTags]);
 
   const updateField = (field, language, value) => {
     setForm((prev) => ({
@@ -123,6 +147,7 @@ const TagsList = () => {
   const openCreateModal = () => {
     setEditingId(null);
     setForm(initialForm);
+    setErrors({});
     setModalOpen(true);
   };
 
@@ -152,6 +177,7 @@ const TagsList = () => {
       });
 
       setEditingId(id);
+      setErrors({});
       setModalOpen(true);
     } catch (error) {
       toast.error(
@@ -168,6 +194,7 @@ const TagsList = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm);
+    setErrors({});
   };
 
   const validateForm = () => {
@@ -178,29 +205,37 @@ const TagsList = () => {
     if (!englishName) {
       newErrors.nameEn = "English tag name is required";
     } else if (englishName.length < 2) {
-      newErrors.nameEn = "English tag name must be at least 2 characters";
+      newErrors.nameEn =
+        "English tag name must be at least 2 characters";
     } else if (englishName.length > 60) {
-      newErrors.nameEn = "English tag name cannot exceed 60 characters";
+      newErrors.nameEn =
+        "English tag name cannot exceed 60 characters";
     } else if (!slugify(englishName)) {
-      newErrors.nameEn = "English tag name contains invalid characters";
+      newErrors.nameEn =
+        "English tag name contains invalid characters";
     }
 
     if (!hindiName) {
       newErrors.nameHi = "Hindi tag name is required";
     } else if (hindiName.length < 2) {
-      newErrors.nameHi = "Hindi tag name must be at least 2 characters";
+      newErrors.nameHi =
+        "Hindi tag name must be at least 2 characters";
     } else if (hindiName.length > 60) {
-      newErrors.nameHi = "Hindi tag name cannot exceed 60 characters";
+      newErrors.nameHi =
+        "Hindi tag name cannot exceed 60 characters";
     } else if (!slugify(hindiName)) {
-      newErrors.nameHi = "Hindi tag name contains invalid characters";
+      newErrors.nameHi =
+        "Hindi tag name contains invalid characters";
     }
 
-    if (form.description.en && form.description.en.length > 300) {
-      newErrors.descriptionEn = "English description cannot exceed 300 characters";
+    if (form.description.en.length > 300) {
+      newErrors.descriptionEn =
+        "English description cannot exceed 300 characters";
     }
 
-    if (form.description.hi && form.description.hi.length > 300) {
-      newErrors.descriptionHi = "Hindi description cannot exceed 300 characters";
+    if (form.description.hi.length > 300) {
+      newErrors.descriptionHi =
+        "Hindi description cannot exceed 300 characters";
     }
 
     setErrors(newErrors);
@@ -272,8 +307,86 @@ const TagsList = () => {
     }
   };
 
+  const handleTrendingChange = async (
+    tag,
+    isTrending,
+    order
+  ) => {
+    if (actionId) return;
+
+    if (isTrending && !tag.isActive) {
+      toast.error(
+        "Activate this tag before adding it to Trending."
+      );
+      return;
+    }
+
+    const nextOrder = Number(order);
+
+    if (
+      isTrending &&
+      (!Number.isInteger(nextOrder) ||
+        nextOrder < 1 ||
+        nextOrder > 5)
+    ) {
+      toast.error("Select a valid trending position.");
+      return;
+    }
+
+    if (
+      isTrending &&
+      !tag.isTrending &&
+      trendingTags.length >= 5
+    ) {
+      toast.error(
+        "You can select a maximum of five trending tags."
+      );
+      return;
+    }
+
+    try {
+      setActionId(tag._id);
+
+      const response = await api.patch(
+        `/tags/${tag._id}/trending`,
+        {
+          isTrending,
+          ...(isTrending && {
+            trendingOrder: nextOrder,
+          }),
+        }
+      );
+
+      if (!response.data?.success) {
+        throw new Error(
+          response.data?.message ||
+            "Unable to update trending tag"
+        );
+      }
+
+      toast.success(
+        response.data.message || "Trending tags updated"
+      );
+
+      await Promise.all([
+        loadTags(),
+        loadTrendingTags(),
+      ]);
+    } catch (error) {
+      toast.error(
+        getErrorMessage(
+          error,
+          "Unable to update trending tag"
+        )
+      );
+    } finally {
+      setActionId(null);
+    }
+  };
+
   const handleStatusChange = (tag) => {
     if (actionId) return;
+
     const isActivating = !tag.isActive;
 
     setConfirmModal({
@@ -288,7 +401,10 @@ const TagsList = () => {
       onConfirm: async () => {
         try {
           setActionId(tag._id);
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          setConfirmModal((prev) => ({
+            ...prev,
+            isLoading: true,
+          }));
 
           const response = await api.patch(
             `/tags/${tag._id}/status`,
@@ -299,21 +415,40 @@ const TagsList = () => {
 
           if (!response.data?.success) {
             throw new Error(
-              response.data?.message || "Unable to update status"
+              response.data?.message ||
+                "Unable to update status"
             );
           }
 
           toast.success(
-            response.data.message || (isActivating ? "Tag activated" : "Tag deactivated")
+            response.data.message ||
+              (isActivating
+                ? "Tag activated"
+                : "Tag deactivated")
           );
 
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
-          await loadTags();
+          setConfirmModal((prev) => ({
+            ...prev,
+            isOpen: false,
+            isLoading: false,
+          }));
+
+          await Promise.all([
+            loadTags(),
+            loadTrendingTags(),
+          ]);
         } catch (error) {
           toast.error(
-            getErrorMessage(error, "Unable to update status")
+            getErrorMessage(
+              error,
+              "Unable to update status"
+            )
           );
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+
+          setConfirmModal((prev) => ({
+            ...prev,
+            isLoading: false,
+          }));
         } finally {
           setActionId(null);
         }
@@ -334,32 +469,53 @@ const TagsList = () => {
       onConfirm: async () => {
         try {
           setActionId(tag._id);
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          setConfirmModal((prev) => ({
+            ...prev,
+            isLoading: true,
+          }));
 
-          const response = await api.delete(`/tags/${tag._id}`);
+          const response = await api.delete(
+            `/tags/${tag._id}`
+          );
 
           if (!response.data?.success) {
             throw new Error(
-              response.data?.message || "Unable to delete tag"
+              response.data?.message ||
+                "Unable to delete tag"
             );
           }
 
           toast.success(
-            response.data.message || "Tag deleted successfully"
+            response.data.message ||
+              "Tag deleted successfully"
           );
 
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          setConfirmModal((prev) => ({
+            ...prev,
+            isOpen: false,
+            isLoading: false,
+          }));
 
           if (tags.length === 1 && page > 1) {
             setPage((prev) => prev - 1);
           } else {
-            await loadTags();
+            await Promise.all([
+              loadTags(),
+              loadTrendingTags(),
+            ]);
           }
         } catch (error) {
           toast.error(
-            getErrorMessage(error, "Unable to delete tag")
+            getErrorMessage(
+              error,
+              "Unable to delete tag"
+            )
           );
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+
+          setConfirmModal((prev) => ({
+            ...prev,
+            isLoading: false,
+          }));
         } finally {
           setActionId(null);
         }
@@ -410,6 +566,15 @@ const TagsList = () => {
         </div>
       </div>
 
+      <div className="tags-trending-summary">
+        <div>
+          <Flame size={20} />
+          <strong>Trending Tags</strong>
+        </div>
+
+        <span>{trendingTags.length} / 5 selected</span>
+      </div>
+
       <div className="tags-content-card">
         <div className="tags-toolbar">
           <div className="tags-search">
@@ -455,6 +620,7 @@ const TagsList = () => {
                 <th>Tag Name</th>
                 <th>Description</th>
                 <th>Status</th>
+                <th>Trending</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -462,7 +628,7 @@ const TagsList = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="tags-empty">
+                  <td colSpan="5" className="tags-empty">
                     <Loader2
                       className="tags-spinner"
                       size={24}
@@ -472,7 +638,7 @@ const TagsList = () => {
                 </tr>
               ) : tags.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="tags-empty">
+                  <td colSpan="5" className="tags-empty">
                     <Tag size={30} />
                     <strong>No tags found</strong>
                     <span>
@@ -509,11 +675,82 @@ const TagsList = () => {
                     </td>
 
                     <td>
+                      <div className="tags-trending-control">
+                        <label className="tags-trending-toggle">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(tag.isTrending)}
+                            disabled={
+                              !tag.isActive ||
+                              Boolean(actionId)
+                            }
+                            onChange={(event) => {
+                              const checked =
+                                event.target.checked;
+
+                              const nextOrder = checked
+                                ? trendingTags.length + 1
+                                : 0;
+
+                              handleTrendingChange(
+                                tag,
+                                checked,
+                                nextOrder
+                              );
+                            }}
+                          />
+
+                          <span className="tags-trending-slider" />
+                        </label>
+
+                        {tag.isTrending ? (
+                          <div className="tags-trending-selected">
+                            <Flame size={14} />
+                            <span>
+                              #{tag.trendingOrder}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="tags-trending-inactive">
+                            Off
+                          </span>
+                        )}
+                      </div>
+
+                      {tag.isTrending && (
+                        <select
+                          className="tags-trending-order"
+                          value={tag.trendingOrder}
+                          disabled={Boolean(actionId)}
+                          onChange={(event) =>
+                            handleTrendingChange(
+                              tag,
+                              true,
+                              event.target.value
+                            )
+                          }
+                          aria-label={`Trending position for ${tag.name?.en}`}
+                        >
+                          {[1, 2, 3, 4, 5].map((order) => (
+                            <option
+                              key={order}
+                              value={order}
+                            >
+                              Position {order}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+
+                    <td>
                       <div className="tags-actions">
                         <button
                           type="button"
                           title="Edit tag"
-                          onClick={() => openEditModal(tag._id)}
+                          onClick={() =>
+                            openEditModal(tag._id)
+                          }
                           disabled={Boolean(actionId)}
                         >
                           <Pencil size={16} />
@@ -526,7 +763,9 @@ const TagsList = () => {
                               ? "Deactivate tag"
                               : "Activate tag"
                           }
-                          onClick={() => handleStatusChange(tag)}
+                          onClick={() =>
+                            handleStatusChange(tag)
+                          }
                           disabled={Boolean(actionId)}
                         >
                           {tag.isActive ? (
@@ -569,7 +808,9 @@ const TagsList = () => {
             <button
               type="button"
               disabled={page <= 1 || loading}
-              onClick={() => setPage((prev) => prev - 1)}
+              onClick={() =>
+                setPage((prev) => prev - 1)
+              }
             >
               <ChevronLeft size={17} />
               Previous
@@ -584,7 +825,9 @@ const TagsList = () => {
               disabled={
                 page >= pagination.totalPages || loading
               }
-              onClick={() => setPage((prev) => prev + 1)}
+              onClick={() =>
+                setPage((prev) => prev + 1)
+              }
             >
               Next
               <ChevronRight size={17} />
@@ -600,7 +843,9 @@ const TagsList = () => {
         >
           <div
             className="tags-modal"
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
           >
             <form onSubmit={handleSubmit}>
               <div className="tags-modal-header">
@@ -630,11 +875,16 @@ const TagsList = () => {
 
                   <label>
                     <span>
-                      Tag Name <span className="field-required-mark">*</span>
+                      Tag Name{" "}
+                      <span className="field-required-mark">
+                        *
+                      </span>
                     </span>
 
                     <input
-                      className={errors.nameEn ? "has-field-error" : ""}
+                      className={
+                        errors.nameEn ? "has-field-error" : ""
+                      }
                       value={form.name.en}
                       onChange={(event) => {
                         updateField(
@@ -642,15 +892,23 @@ const TagsList = () => {
                           "en",
                           event.target.value
                         );
+
                         if (errors.nameEn) {
-                          setErrors((prev) => ({ ...prev, nameEn: "" }));
+                          setErrors((prev) => ({
+                            ...prev,
+                            nameEn: "",
+                          }));
                         }
                       }}
                       placeholder="For example: Technology"
                       maxLength={60}
                     />
+
                     {errors.nameEn && (
-                      <span className="field-error-text" role="alert">
+                      <span
+                        className="field-error-text"
+                        role="alert"
+                      >
                         {errors.nameEn}
                       </span>
                     )}
@@ -660,7 +918,11 @@ const TagsList = () => {
                     Description
 
                     <textarea
-                      className={errors.descriptionEn ? "has-field-error" : ""}
+                      className={
+                        errors.descriptionEn
+                          ? "has-field-error"
+                          : ""
+                      }
                       value={form.description.en}
                       onChange={(event) => {
                         updateField(
@@ -668,16 +930,24 @@ const TagsList = () => {
                           "en",
                           event.target.value
                         );
+
                         if (errors.descriptionEn) {
-                          setErrors((prev) => ({ ...prev, descriptionEn: "" }));
+                          setErrors((prev) => ({
+                            ...prev,
+                            descriptionEn: "",
+                          }));
                         }
                       }}
                       placeholder="Enter English description"
                       maxLength={300}
                       rows={3}
                     />
+
                     {errors.descriptionEn && (
-                      <span className="field-error-text" role="alert">
+                      <span
+                        className="field-error-text"
+                        role="alert"
+                      >
                         {errors.descriptionEn}
                       </span>
                     )}
@@ -689,11 +959,16 @@ const TagsList = () => {
 
                   <label>
                     <span>
-                      Tag Name <span className="field-required-mark">*</span>
+                      Tag Name{" "}
+                      <span className="field-required-mark">
+                        *
+                      </span>
                     </span>
 
                     <input
-                      className={errors.nameHi ? "has-field-error" : ""}
+                      className={
+                        errors.nameHi ? "has-field-error" : ""
+                      }
                       value={form.name.hi}
                       onChange={(event) => {
                         updateField(
@@ -701,15 +976,23 @@ const TagsList = () => {
                           "hi",
                           event.target.value
                         );
+
                         if (errors.nameHi) {
-                          setErrors((prev) => ({ ...prev, nameHi: "" }));
+                          setErrors((prev) => ({
+                            ...prev,
+                            nameHi: "",
+                          }));
                         }
                       }}
                       placeholder="उदाहरण: तकनीक"
                       maxLength={60}
                     />
+
                     {errors.nameHi && (
-                      <span className="field-error-text" role="alert">
+                      <span
+                        className="field-error-text"
+                        role="alert"
+                      >
                         {errors.nameHi}
                       </span>
                     )}
@@ -719,7 +1002,11 @@ const TagsList = () => {
                     Description
 
                     <textarea
-                      className={errors.descriptionHi ? "has-field-error" : ""}
+                      className={
+                        errors.descriptionHi
+                          ? "has-field-error"
+                          : ""
+                      }
                       value={form.description.hi}
                       onChange={(event) => {
                         updateField(
@@ -727,16 +1014,24 @@ const TagsList = () => {
                           "hi",
                           event.target.value
                         );
+
                         if (errors.descriptionHi) {
-                          setErrors((prev) => ({ ...prev, descriptionHi: "" }));
+                          setErrors((prev) => ({
+                            ...prev,
+                            descriptionHi: "",
+                          }));
                         }
                       }}
                       placeholder="हिंदी विवरण दर्ज करें"
                       maxLength={300}
                       rows={3}
                     />
+
                     {errors.descriptionHi && (
-                      <span className="field-error-text" role="alert">
+                      <span
+                        className="field-error-text"
+                        role="alert"
+                      >
                         {errors.descriptionHi}
                       </span>
                     )}
@@ -770,7 +1065,9 @@ const TagsList = () => {
                   ) : (
                     <>
                       <Plus size={17} />
-                      {editingId ? "Update Tag" : "Create Tag"}
+                      {editingId
+                        ? "Update Tag"
+                        : "Create Tag"}
                     </>
                   )}
                 </button>
@@ -782,7 +1079,13 @@ const TagsList = () => {
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        onClose={() => !confirmModal.isLoading && setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          !confirmModal.isLoading &&
+          setConfirmModal((prev) => ({
+            ...prev,
+            isOpen: false,
+          }))
+        }
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}

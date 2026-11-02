@@ -21,6 +21,7 @@ const settingsRouter = require("./routes/settings.routes");
 const advertisementRouter = require("./routes/advertisement.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const adminUserRouter = require("./routes/adminUser.routes");
+const ttsRouter = require("./routes/tts.routes");
 const app = express();
 
 const allowedOrigins = [
@@ -80,6 +81,7 @@ app.use("/api/advertisements", advertisementRouter);
 
 app.use("/api/admin", dashboardRoutes);
 app.use("/api/admin/users", adminUserRouter);
+app.use("/api/tts", ttsRouter);
 
 app.use(
   "/uploads",

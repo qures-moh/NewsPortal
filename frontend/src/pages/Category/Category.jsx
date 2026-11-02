@@ -33,12 +33,12 @@ const Category = () => {
 
   const isHindi = language === "hi";
 
-  // Reset page when category slug or language changes
+
   useEffect(() => {
     setPage(1);
   }, [slug, language]);
 
-  // Fetch Category info & its subcategories
+ 
   useEffect(() => {
     const controller = new AbortController();
 
@@ -75,7 +75,7 @@ const Category = () => {
 
         setCategory(matched);
 
-        // Fetch subcategories for this category
+     
         try {
           const subRes = await api.get(`/subcategories/category/${matched._id}`, {
             signal: controller.signal,
@@ -87,7 +87,7 @@ const Category = () => {
             [];
           setSubcategories(Array.isArray(subs) ? subs.filter((s) => s.isActive !== false) : []);
         } catch {
-          // Non-critical
+         
         }
       } catch (err) {
         if (!controller.signal.aborted) {
@@ -236,7 +236,6 @@ const Category = () => {
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="category-error-state">
             <AlertCircle size={28} className="error-icon" />
@@ -247,10 +246,10 @@ const Category = () => {
           </div>
         )}
 
-        {/* News Content */}
+      
         {!loading && !error && news.length > 0 && (
           <>
-            {/* Featured Lead Category Story (Page 1) */}
+          
             {leadArticle && (
               <div className="category-featured-story">
                 <div className="editorial-section-header has-accent">
@@ -264,7 +263,7 @@ const Category = () => {
               </div>
             )}
 
-            {/* Category News Grid */}
+           
             <div className="editorial-section-header">
               <span className="editorial-section-title">
                 <span className="title-bar" />
@@ -282,10 +281,10 @@ const Category = () => {
               ))}
             </div>
 
-            {/* Middle Advertisement */}
+         
             <Advertisement page="category" position="middle" />
 
-            {/* Pagination Controls */}
+          
             {pagination && pagination.totalPages > 1 && (
               <div className="category-pagination-bar">
                 <button
@@ -325,7 +324,7 @@ const Category = () => {
           </>
         )}
 
-        {/* Empty State */}
+       
         {!loading && !error && news.length === 0 && (
           <div className="category-empty-state">
             <h3>{isHindi ? "इस श्रेणी में अभी कोई समाचार नहीं है" : "No Dispatches Filed Under This Category"}</h3>
@@ -341,7 +340,7 @@ const Category = () => {
         )}
       </div>
 
-      {/* BOTTOM ADVERTISEMENT */}
+      
       <div className="container">
         <Advertisement page="category" position="bottom" />
       </div>

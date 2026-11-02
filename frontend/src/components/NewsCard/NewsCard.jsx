@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Clock, Eye, Video, Flame, User } from "lucide-react";
+import { Clock, Video, Flame } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { getImageUrl, getNewsPlaceholder } from "../../utils/imageUrl";
 import {
@@ -13,7 +13,7 @@ import "./NewsCard.css";
 
 const NewsCard = ({
   article,
-  variant = "standard", // "hero" | "standard" | "horizontal" | "compact" | "ranked"
+  variant = "standard",
   rank = null,
   showCategory = true,
   showExcerpt = true,
@@ -38,12 +38,9 @@ const NewsCard = ({
   const formattedDate = formatNewsDate(article.publishedAt || article.createdAt, language);
   const timeAgo = getRelativeTime(article.publishedAt || article.createdAt, language);
   const readTime = calculateReadingTime(content, language);
-  const views = article.views || 0;
 
-  // Check if article has video media
   const hasVideo = Array.isArray(article.media) && article.media.some((m) => m.type === "video");
 
-  // 1. HERO VARIANT (Lead Magazine Feature)
   if (variant === "hero") {
     return (
       <article className="news-card-hero">
@@ -89,31 +86,13 @@ const NewsCard = ({
           )}
 
           <div className="card-hero-byline">
-            {article.author?.avatar ? (
-              <img
-                src={getImageUrl(article.author.avatar)}
-                alt={article.author.name}
-                className="card-author-avatar"
-              />
-            ) : (
-              <span className="card-author-placeholder">
-                <User size={13} />
-              </span>
-            )}
-            <span className="card-author-name">{article.author?.name || "Editorial Desk"}</span>
-            <span className="byline-dot">•</span>
             <span className="card-read-time">{readTime}</span>
-            <span className="byline-dot">•</span>
-            <span className="card-views-count">
-              <Eye size={12} /> {views.toLocaleString()}
-            </span>
           </div>
         </div>
       </article>
     );
   }
 
-  // 2. RANKED VARIANT (Trending 01, 02, 03)
   if (variant === "ranked") {
     return (
       <article className="news-card-ranked">
@@ -127,17 +106,12 @@ const NewsCard = ({
           </h4>
           <div className="ranked-meta">
             <span>{timeAgo}</span>
-            <span className="meta-separator">•</span>
-            <span className="ranked-views">
-              <Flame size={12} className="flame-rank-icon" /> {views.toLocaleString()} views
-            </span>
           </div>
         </div>
       </article>
     );
   }
 
-  // 3. HORIZONTAL / COMPACT VARIANT
   if (variant === "horizontal" || variant === "compact") {
     return (
       <article className={`news-card-horizontal ${variant === "compact" ? "is-compact" : ""}`}>
@@ -175,8 +149,6 @@ const NewsCard = ({
           )}
 
           <div className="horizontal-meta-bottom">
-            <span>{article.author?.name || "News Desk"}</span>
-            <span className="meta-separator">•</span>
             <span>{readTime}</span>
           </div>
         </div>
@@ -184,7 +156,6 @@ const NewsCard = ({
     );
   }
 
-  // 4. STANDARD CARD (Default Grid Variant)
   return (
     <article className="news-card-standard">
       <Link to={articleUrl} className="standard-image-wrap">
@@ -221,22 +192,6 @@ const NewsCard = ({
         {showExcerpt && excerpt && (
           <p className="standard-excerpt">{excerpt}</p>
         )}
-
-        <div className="standard-footer">
-          <div className="standard-author">
-            {article.author?.avatar ? (
-              <img
-                src={getImageUrl(article.author.avatar)}
-                alt={article.author.name}
-                className="mini-author-avatar"
-              />
-            ) : null}
-            <span>{article.author?.name || "Editorial Desk"}</span>
-          </div>
-          <span className="standard-views">
-            <Eye size={12} /> {views}
-          </span>
-        </div>
       </div>
     </article>
   );

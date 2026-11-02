@@ -34,6 +34,8 @@ const createTag = async (data, userId) => {
 
   return Tag.create({
     ...data,
+    isTrending: false,
+    trendingOrder: 0,
     createdBy: userId,
   });
 };
@@ -91,7 +93,9 @@ const getAdminTags = async ({
   if (status === "inactive") filter.isActive = false;
 
   if (search.trim()) {
-    const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedSearch = search
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     filter.$or = [
       { "name.en": { $regex: escapedSearch, $options: "i" } },
@@ -104,6 +108,7 @@ const getAdminTags = async ({
   const [tags, total] = await Promise.all([
     Tag.find(filter)
       .populate("createdBy", "name email")
+      .populate("updatedBy", "name email")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -122,9 +127,13 @@ const getAdminTags = async ({
 };
 
 const getPublicTags = async () => {
-  return Tag.find({ isActive: true })
-    .select("name slug description")
-    .sort({ createdAt: -1 })
+  return Tag.find({
+    isActive: true,
+    isTrending: true,
+  })
+    .select("name slug isTrending trendingOrder")
+    .sort({ trendingOrder: 1, _id: 1 })
+    .limit(5)
     .lean();
 };
 
@@ -139,23 +148,166 @@ const getTagById = async (tagId) => {
 };
 
 const updateTagStatus = async (tagId, isActive, userId) => {
-  const tag = await Tag.findByIdAndUpdate(
-    tagId,
-    {
-      $set: {
-        isActive,
-        updatedBy: userId,
-      },
-    },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
+  if (typeof isActive !== "boolean") {
+    throw createError("isActive must be a boolean");
+  }
+
+  const tag = await Tag.findById(tagId);
 
   if (!tag) {
     throw createError("Tag not found", 404);
   }
+
+  if (!isActive && tag.isTrending) {
+    await Tag.updateMany(
+      {
+        isActive: true,
+        isTrending: true,
+        trendingOrder: { $gt: tag.trendingOrder },
+        _id: { $ne: tagId },
+      },
+      {
+        $inc: { trendingOrder: -1 },
+      }
+    );
+  }
+
+  tag.isActive = isActive;
+  tag.updatedBy = userId;
+
+  if (!isActive) {
+    tag.isTrending = false;
+    tag.trendingOrder = 0;
+  }
+
+  await tag.save();
+
+  return tag;
+};
+
+const updateTagTrending = async (
+  tagId,
+  isTrending,
+  trendingOrder,
+  userId
+) => {
+  if (typeof isTrending !== "boolean") {
+    throw createError("isTrending must be a boolean");
+  }
+
+  const tag = await Tag.findById(tagId);
+
+  if (!tag) {
+    throw createError("Tag not found", 404);
+  }
+
+  if (isTrending && !tag.isActive) {
+    throw createError("Inactive tags cannot be selected as trending");
+  }
+
+  if (!isTrending) {
+    if (tag.isTrending) {
+      await Tag.updateMany(
+        {
+          isActive: true,
+          isTrending: true,
+          trendingOrder: { $gt: tag.trendingOrder },
+          _id: { $ne: tagId },
+        },
+        {
+          $inc: { trendingOrder: -1 },
+        }
+      );
+    }
+
+    tag.isTrending = false;
+    tag.trendingOrder = 0;
+    tag.updatedBy = userId;
+
+    await tag.save();
+
+    return tag;
+  }
+
+  if (
+    !Number.isInteger(trendingOrder) ||
+    trendingOrder < 1 ||
+    trendingOrder > 5
+  ) {
+    throw createError("Trending order must be an integer between 1 and 5");
+  }
+
+  const trendingCount = await Tag.countDocuments({
+    isActive: true,
+    isTrending: true,
+    _id: { $ne: tagId },
+  });
+
+  if (!tag.isTrending && trendingCount >= 5) {
+    throw createError(
+      "You can select a maximum of 5 trending tags",
+      409
+    );
+  }
+
+  if (trendingOrder > trendingCount + 1) {
+    throw createError(
+      `Trending order must be between 1 and ${trendingCount + 1}`
+    );
+  }
+
+  const previousOrder = tag.trendingOrder;
+
+  if (tag.isTrending && previousOrder !== trendingOrder) {
+    if (trendingOrder < previousOrder) {
+      await Tag.updateMany(
+        {
+          isActive: true,
+          isTrending: true,
+          trendingOrder: {
+            $gte: trendingOrder,
+            $lt: previousOrder,
+          },
+          _id: { $ne: tagId },
+        },
+        {
+          $inc: { trendingOrder: 1 },
+        }
+      );
+    } else {
+      await Tag.updateMany(
+        {
+          isActive: true,
+          isTrending: true,
+          trendingOrder: {
+            $gt: previousOrder,
+            $lte: trendingOrder,
+          },
+          _id: { $ne: tagId },
+        },
+        {
+          $inc: { trendingOrder: -1 },
+        }
+      );
+    }
+  } else if (!tag.isTrending) {
+    await Tag.updateMany(
+      {
+        isActive: true,
+        isTrending: true,
+        trendingOrder: { $gte: trendingOrder },
+      },
+      {
+        $inc: { trendingOrder: 1 },
+      }
+    );
+  }
+
+  tag.isTrending = true;
+  tag.trendingOrder = trendingOrder;
+  tag.updatedBy = userId;
+
+  await tag.save();
 
   return tag;
 };
@@ -178,6 +330,20 @@ const deleteTag = async (tagId) => {
     );
   }
 
+  if (tag.isTrending) {
+    await Tag.updateMany(
+      {
+        isActive: true,
+        isTrending: true,
+        trendingOrder: { $gt: tag.trendingOrder },
+        _id: { $ne: tagId },
+      },
+      {
+        $inc: { trendingOrder: -1 },
+      }
+    );
+  }
+
   await tag.deleteOne();
 
   return {
@@ -192,5 +358,6 @@ module.exports = {
   getPublicTags,
   getTagById,
   updateTagStatus,
+  updateTagTrending,
   deleteTag,
 };
