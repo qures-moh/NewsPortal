@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus,
   Search,
@@ -14,37 +14,26 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
 import { toast } from "sonner";
-
 import api from "../../services/api";
-
 import ConfirmModal from "../../components/common/ConfirmModal";
-
 import "./CategoryList.css";
 
 const initialForm = {
   name: { en: "", hi: "" },
-
   description: { en: "", hi: "" },
-
-  displayOrder: 0,
+  displayOrder: "",
 };
 
 const getErrorMessage = (error, fallback) =>
-  error.response?.data?.message || error.message || fallback;
+  error?.response?.data?.message || error?.message || fallback;
 
 const generateSlug = (value) => {
   return value
-
     .trim()
-
     .toLowerCase()
-
     .normalize("NFC")
-
     .replace(/[^\p{L}\p{N}]+/gu, "-")
-
     .replace(/^-|-$/g, "");
 };
 
@@ -54,10 +43,15 @@ const getImageUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
 
   const apiUrl = import.meta.env.VITE_API_URL || "";
-  const backendUrl = apiUrl.replace(/\/api\/?$/i, "").replace(/\/+$/, "");
+  const backendUrl = apiUrl
+    .replace(/\/api\/?$/i, "")
+    .replace(/\/+$/, "");
 
   const normalizedPath = path.replace(/^\/+/, "");
-  return backendUrl ? `${backendUrl}/${normalizedPath}` : `/${normalizedPath}`;
+
+  return backendUrl
+    ? `${backendUrl}/${normalizedPath}`
+    : `/${normalizedPath}`;
 };
 
 const CategoryList = () => {
@@ -65,60 +59,43 @@ const CategoryList = () => {
 
   const [pagination, setPagination] = useState({
     page: 1,
-
     totalPages: 1,
-
     total: 0,
   });
 
   const [page, setPage] = useState(1);
-
   const [search, setSearch] = useState("");
-
   const [searchInput, setSearchInput] = useState("");
 
   const [loading, setLoading] = useState(false);
-
   const [saving, setSaving] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
-
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState(initialForm);
-
   const [errors, setErrors] = useState({});
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
-
     title: "",
-
     message: "",
-
     confirmText: "Confirm",
-
     variant: "danger",
-
     onConfirm: null,
-
     isLoading: false,
   });
 
   const [imageFile, setImageFile] = useState(null);
-
   const [imagePreview, setImagePreview] = useState("");
-
   const [existingImage, setExistingImage] = useState("");
 
   const fileInputRef = useRef(null);
-
   const previewRef = useRef("");
 
   const clearImagePreview = useCallback(() => {
     if (previewRef.current) {
       URL.revokeObjectURL(previewRef.current);
-
       previewRef.current = "";
     }
 
@@ -140,15 +117,15 @@ const CategoryList = () => {
       const response = await api.get("/categories/admin/all", {
         params: {
           page,
-
           limit: 10,
-
           search,
         },
       });
 
       if (!response.data?.success) {
-        throw new Error(response.data?.message || "Unable to fetch categories");
+        throw new Error(
+          response.data?.message || "Unable to fetch categories"
+        );
       }
 
       setCategories(response.data.categories || []);
@@ -157,13 +134,13 @@ const CategoryList = () => {
 
       setPagination({
         page: paginationData.page || page,
-
         totalPages: paginationData.totalPages || 1,
-
         total: paginationData.total || 0,
       });
     } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to load categories"));
+      toast.error(
+        getErrorMessage(error, "Failed to load categories")
+      );
     } finally {
       setLoading(false);
     }
@@ -176,10 +153,8 @@ const CategoryList = () => {
   const updateLocalizedField = (field, language, value) => {
     setForm((previous) => ({
       ...previous,
-
       [field]: {
         ...previous[field],
-
         [language]: value,
       },
     }));
@@ -188,18 +163,10 @@ const CategoryList = () => {
   const resetForm = () => {
     clearImagePreview();
 
-    setForm({
-      name: { en: "", hi: "" },
-
-      description: { en: "", hi: "" },
-
-      displayOrder: 0,
-    });
-
+    setForm(initialForm);
+    setErrors({});
     setImageFile(null);
-
     setExistingImage("");
-
     setEditingId(null);
 
     if (fileInputRef.current) {
@@ -211,13 +178,11 @@ const CategoryList = () => {
     if (saving) return;
 
     setModalOpen(false);
-
     resetForm();
   };
 
   const openCreateModal = () => {
     resetForm();
-
     setModalOpen(true);
   };
 
@@ -225,32 +190,32 @@ const CategoryList = () => {
     try {
       setSaving(true);
 
-      const response = await api.get(`/categories/admin/${category._id}`);
+      const response = await api.get(
+        `/categories/admin/${category._id}`
+      );
 
-      const selectedCategory = response.data?.category || category;
+      const selectedCategory =
+        response.data?.category || category;
 
       setEditingId(selectedCategory._id);
 
       setForm({
         name: {
           en: selectedCategory.name?.en || "",
-
           hi: selectedCategory.name?.hi || "",
         },
-
         description: {
           en: selectedCategory.description?.en || "",
-
           hi: selectedCategory.description?.hi || "",
         },
-
-        displayOrder: selectedCategory.displayOrder ?? 0,
+        displayOrder: String(
+          selectedCategory.displayOrder ?? 0
+        ),
       });
 
       setExistingImage(selectedCategory.image || "");
-
       setImageFile(null);
-
+      setErrors({});
       clearImagePreview();
 
       if (fileInputRef.current) {
@@ -259,7 +224,9 @@ const CategoryList = () => {
 
       setModalOpen(true);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Unable to load category"));
+      toast.error(
+        getErrorMessage(error, "Unable to load category")
+      );
     } finally {
       setSaving(false);
     }
@@ -272,27 +239,23 @@ const CategoryList = () => {
 
     const allowedTypes = [
       "image/jpeg",
-
       "image/png",
-
       "image/webp",
-
       "image/avif",
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, PNG, WEBP and AVIF images are allowed");
+      toast.error(
+        "Only JPG, PNG, WEBP and AVIF images are allowed"
+      );
 
       event.target.value = "";
-
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size must be less than 5MB");
-
       event.target.value = "";
-
       return;
     }
 
@@ -303,13 +266,11 @@ const CategoryList = () => {
     previewRef.current = previewUrl;
 
     setImagePreview(previewUrl);
-
     setImageFile(file);
   };
 
   const removeSelectedImage = () => {
     clearImagePreview();
-
     setImageFile(null);
 
     if (fileInputRef.current) {
@@ -332,10 +293,15 @@ const CategoryList = () => {
 
     const response = await api.post("/media/image", formData);
 
-    const imagePath = response.data?.data?.path || response.data?.data?.url;
+    const imagePath =
+      response.data?.data?.path ||
+      response.data?.data?.url;
 
     if (!response.data?.success || !imagePath) {
-      throw new Error(response.data?.message || "Category image upload failed");
+      throw new Error(
+        response.data?.message ||
+          "Category image upload failed"
+      );
     }
 
     return imagePath;
@@ -347,45 +313,57 @@ const CategoryList = () => {
     if (!form.name.en.trim()) {
       newErrors.nameEn = "English category name is required";
     } else if (form.name.en.trim().length < 2) {
-      newErrors.nameEn = "English name must be at least 2 characters";
+      newErrors.nameEn =
+        "English name must be at least 2 characters";
     } else if (!generateSlug(form.name.en)) {
-      newErrors.nameEn = "English name contains invalid characters";
+      newErrors.nameEn =
+        "English name contains invalid characters";
     }
 
     if (!form.name.hi.trim()) {
       newErrors.nameHi = "Hindi category name is required";
     } else if (form.name.hi.trim().length < 2) {
-      newErrors.nameHi = "Hindi name must be at least 2 characters";
+      newErrors.nameHi =
+        "Hindi name must be at least 2 characters";
     } else if (!generateSlug(form.name.hi)) {
-      newErrors.nameHi = "Hindi name contains invalid characters";
+      newErrors.nameHi =
+        "Hindi name contains invalid characters";
     }
 
-    if (form.description.en && form.description.en.length > 500) {
+    if (form.description.en.length > 500) {
       newErrors.descriptionEn =
         "English description cannot exceed 500 characters";
     }
 
-    if (form.description.hi && form.description.hi.length > 500) {
+    if (form.description.hi.length > 500) {
       newErrors.descriptionHi =
         "Hindi description cannot exceed 500 characters";
     }
 
-    const displayOrder = Number(form.displayOrder);
+    if (form.displayOrder !== "") {
+      const displayOrder = Number(form.displayOrder);
 
-    if (
-      form.displayOrder === "" ||
-      !Number.isInteger(displayOrder) ||
-      displayOrder < 0 ||
-      displayOrder > 10000
-    ) {
+      if (
+        !Number.isInteger(displayOrder) ||
+        displayOrder < 0 ||
+        displayOrder > 10000
+      ) {
+        newErrors.displayOrder =
+          "Display order must be an integer between 0 and 10000";
+      }
+    }
+
+    if (editingId && form.displayOrder === "") {
       newErrors.displayOrder =
-        "Display order must be an integer between 0 and 10000";
+        "Display order is required when editing";
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      toast.error("Please resolve the validation errors in the form");
+      toast.error(
+        "Please resolve the validation errors in the form"
+      );
 
       return false;
     }
@@ -408,7 +386,10 @@ const CategoryList = () => {
           imagePath = await uploadCategoryImage();
         } catch (uploadError) {
           toast.error(
-            getErrorMessage(uploadError, "Category image upload failed"),
+            getErrorMessage(
+              uploadError,
+              "Category image upload failed"
+            )
           );
 
           return;
@@ -418,31 +399,30 @@ const CategoryList = () => {
       const payload = {
         name: {
           en: form.name.en.trim(),
-
           hi: form.name.hi.trim(),
         },
-
         slug: {
           en: generateSlug(form.name.en),
-
           hi: generateSlug(form.name.hi),
         },
-
         description: {
           en: form.description.en.trim(),
-
           hi: form.description.hi.trim(),
         },
-
         image: imagePath,
-
-        displayOrder: Number(form.displayOrder),
       };
+
+      if (form.displayOrder !== "") {
+        payload.displayOrder = Number(form.displayOrder);
+      }
 
       const wasEditing = Boolean(editingId);
 
       if (wasEditing) {
-        await api.patch(`/categories/${editingId}`, payload);
+        await api.patch(
+          `/categories/${editingId}`,
+          payload
+        );
 
         toast.success("Category updated successfully");
       } else {
@@ -452,18 +432,18 @@ const CategoryList = () => {
       }
 
       setModalOpen(false);
-
       resetForm();
 
       if (!wasEditing && page !== 1) {
         setPage(1);
-
         return;
       }
 
       await loadCategories();
     } catch (error) {
-      toast.error(getErrorMessage(error, "Unable to save category"));
+      toast.error(
+        getErrorMessage(error, "Unable to save category")
+      );
     } finally {
       setSaving(false);
     }
@@ -474,42 +454,56 @@ const CategoryList = () => {
 
     setConfirmModal({
       isOpen: true,
-
-      title: isActivating ? "Activate Category" : "Deactivate Category",
-
+      title: isActivating
+        ? "Activate Category"
+        : "Deactivate Category",
       message: isActivating
-        ? `Are you sure you want to activate "${category.name?.en || "this category"}"? It will become visible on the public portal.`
-        : `Are you sure you want to deactivate "${category.name?.en || "this category"}"? It will be hidden from the public portal.`,
-
+        ? `Are you sure you want to activate "${
+            category.name?.en || "this category"
+          }"? It will become visible on the public portal.`
+        : `Are you sure you want to deactivate "${
+            category.name?.en || "this category"
+          }"? It will be hidden from the public portal.`,
       confirmText: isActivating ? "Activate" : "Deactivate",
-
       variant: isActivating ? "primary" : "warning",
-
       isLoading: false,
 
       onConfirm: async () => {
         try {
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: true,
+          }));
 
-          await api.patch(`/categories/${category._id}/status`, {
-            isActive: isActivating,
-          });
-
-          toast.success(
-            isActivating ? "Category activated" : "Category deactivated",
+          await api.patch(
+            `/categories/${category._id}/status`,
+            {
+              isActive: isActivating,
+            }
           );
 
-          setConfirmModal((prev) => ({
-            ...prev,
+          toast.success(
+            isActivating
+              ? "Category activated"
+              : "Category deactivated"
+          );
+
+          setConfirmModal((previous) => ({
+            ...previous,
             isOpen: false,
             isLoading: false,
           }));
 
           await loadCategories();
         } catch (error) {
-          toast.error(getErrorMessage(error, "Unable to update status"));
+          toast.error(
+            getErrorMessage(error, "Unable to update status")
+          );
 
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: false,
+          }));
         }
       },
     });
@@ -518,27 +512,27 @@ const CategoryList = () => {
   const handleDelete = (category) => {
     setConfirmModal({
       isOpen: true,
-
       title: "Delete Category",
-
-      message: `Are you sure you want to permanently delete "${category.name?.en || "this category"}"? This action cannot be undone.`,
-
+      message: `Are you sure you want to permanently delete "${
+        category.name?.en || "this category"
+      }"? This action cannot be undone.`,
       confirmText: "Delete Category",
-
       variant: "danger",
-
       isLoading: false,
 
       onConfirm: async () => {
         try {
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: true,
+          }));
 
           await api.delete(`/categories/${category._id}`);
 
           toast.success("Category deleted successfully");
 
-          setConfirmModal((prev) => ({
-            ...prev,
+          setConfirmModal((previous) => ({
+            ...previous,
             isOpen: false,
             isLoading: false,
           }));
@@ -549,9 +543,14 @@ const CategoryList = () => {
             await loadCategories();
           }
         } catch (error) {
-          toast.error(getErrorMessage(error, "Unable to delete category"));
+          toast.error(
+            getErrorMessage(error, "Unable to delete category")
+          );
 
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          setConfirmModal((previous) => ({
+            ...previous,
+            isLoading: false,
+          }));
         }
       },
     });
@@ -561,19 +560,20 @@ const CategoryList = () => {
     event.preventDefault();
 
     setPage(1);
-
     setSearch(searchInput.trim());
   };
 
-  const displayedImage = imagePreview || getImageUrl(existingImage);
+  const displayedImage =
+    imagePreview || getImageUrl(existingImage);
 
   return (
     <div className="category-page">
       <div className="category-page-header">
         <div>
           <h1>Categories</h1>
-
-          <p>Manage your news categories in English and Hindi.</p>
+          <p>
+            Manage your news categories in English and Hindi.
+          </p>
         </div>
 
         <button
@@ -587,14 +587,19 @@ const CategoryList = () => {
       </div>
 
       <div className="category-toolbar">
-        <form className="category-search" onSubmit={handleSearch}>
+        <form
+          className="category-search"
+          onSubmit={handleSearch}
+        >
           <Search size={18} />
 
           <input
             type="text"
             placeholder="Search categories..."
             value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
+            onChange={(event) =>
+              setSearchInput(event.target.value)
+            }
           />
 
           <button type="submit">Search</button>
@@ -607,7 +612,10 @@ const CategoryList = () => {
           disabled={loading}
           aria-label="Refresh categories"
         >
-          <RefreshCw size={17} className={loading ? "category-spin" : ""} />
+          <RefreshCw
+            size={17}
+            className={loading ? "category-spin" : ""}
+          />
         </button>
       </div>
 
@@ -617,13 +625,9 @@ const CategoryList = () => {
             <thead>
               <tr>
                 <th>Category</th>
-
                 <th>Hindi Name</th>
-
                 <th>Order</th>
-
                 <th>Status</th>
-
                 <th>Actions</th>
               </tr>
             </thead>
@@ -658,10 +662,13 @@ const CategoryList = () => {
                         )}
 
                         <div>
-                          <strong>{category.name?.en || "—"}</strong>
+                          <strong>
+                            {category.name?.en || "—"}
+                          </strong>
 
                           <span>
-                            {category.description?.en || "No description"}
+                            {category.description?.en ||
+                              "No description"}
                           </span>
                         </div>
                       </div>
@@ -674,10 +681,14 @@ const CategoryList = () => {
                     <td>
                       <span
                         className={`category-status ${
-                          category.isActive ? "active" : "inactive"
+                          category.isActive
+                            ? "active"
+                            : "inactive"
                         }`}
                       >
-                        {category.isActive ? "Active" : "Inactive"}
+                        {category.isActive
+                          ? "Active"
+                          : "Inactive"}
                       </span>
                     </td>
 
@@ -686,15 +697,23 @@ const CategoryList = () => {
                         <button
                           type="button"
                           title="Edit category"
-                          onClick={() => openEditModal(category)}
+                          onClick={() =>
+                            openEditModal(category)
+                          }
                         >
                           <Pencil size={16} />
                         </button>
 
                         <button
                           type="button"
-                          title={category.isActive ? "Deactivate" : "Activate"}
-                          onClick={() => handleStatusChange(category)}
+                          title={
+                            category.isActive
+                              ? "Deactivate"
+                              : "Activate"
+                          }
+                          onClick={() =>
+                            handleStatusChange(category)
+                          }
                         >
                           {category.isActive ? (
                             <EyeOff size={16} />
@@ -722,14 +741,17 @@ const CategoryList = () => {
 
         <div className="category-pagination">
           <span>
-            Total categories: <strong>{pagination.total}</strong>
+            Total categories:{" "}
+            <strong>{pagination.total}</strong>
           </span>
 
           <div>
             <button
               type="button"
               disabled={page <= 1 || loading}
-              onClick={() => setPage((previous) => previous - 1)}
+              onClick={() =>
+                setPage((previous) => previous - 1)
+              }
             >
               <ChevronLeft size={17} />
             </button>
@@ -740,8 +762,12 @@ const CategoryList = () => {
 
             <button
               type="button"
-              disabled={page >= pagination.totalPages || loading}
-              onClick={() => setPage((previous) => previous + 1)}
+              disabled={
+                page >= pagination.totalPages || loading
+              }
+              onClick={() =>
+                setPage((previous) => previous + 1)
+              }
             >
               <ChevronRight size={17} />
             </button>
@@ -750,16 +776,25 @@ const CategoryList = () => {
       </div>
 
       {modalOpen && (
-        <div className="category-modal-overlay" onMouseDown={closeModal}>
+        <div
+          className="category-modal-overlay"
+          onMouseDown={closeModal}
+        >
           <div
             className="category-modal"
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
           >
             <div className="category-modal-header">
               <div>
-                <h2>{editingId ? "Edit Category" : "Add Category"}</h2>
+                <h2>
+                  {editingId ? "Edit Category" : "Add Category"}
+                </h2>
 
-                <p>Enter category details in English and Hindi.</p>
+                <p>
+                  Enter category details in English and Hindi.
+                </p>
               </div>
 
               <button
@@ -781,24 +816,29 @@ const CategoryList = () => {
                     <div className="category-form-group full">
                       <label>
                         Category Name{" "}
-                        <span className="field-required-mark">*</span>
+                        <span className="field-required-mark">
+                          *
+                        </span>
                       </label>
 
                       <input
                         type="text"
-                        className={errors.nameEn ? "has-field-error" : ""}
+                        className={
+                          errors.nameEn ? "has-field-error" : ""
+                        }
                         value={form.name.en}
                         onChange={(event) => {
                           updateLocalizedField(
                             "name",
-
                             "en",
-
-                            event.target.value,
+                            event.target.value
                           );
 
                           if (errors.nameEn) {
-                            setErrors((prev) => ({ ...prev, nameEn: "" }));
+                            setErrors((previous) => ({
+                              ...previous,
+                              nameEn: "",
+                            }));
                           }
                         }}
                         placeholder="e.g. National"
@@ -806,7 +846,10 @@ const CategoryList = () => {
                       />
 
                       {errors.nameEn && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.nameEn}
                         </span>
                       )}
@@ -817,21 +860,21 @@ const CategoryList = () => {
 
                       <textarea
                         className={
-                          errors.descriptionEn ? "has-field-error" : ""
+                          errors.descriptionEn
+                            ? "has-field-error"
+                            : ""
                         }
                         value={form.description.en}
                         onChange={(event) => {
                           updateLocalizedField(
                             "description",
-
                             "en",
-
-                            event.target.value,
+                            event.target.value
                           );
 
                           if (errors.descriptionEn) {
-                            setErrors((prev) => ({
-                              ...prev,
+                            setErrors((previous) => ({
+                              ...previous,
                               descriptionEn: "",
                             }));
                           }
@@ -842,7 +885,10 @@ const CategoryList = () => {
                       />
 
                       {errors.descriptionEn && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.descriptionEn}
                         </span>
                       )}
@@ -857,24 +903,29 @@ const CategoryList = () => {
                     <div className="category-form-group full">
                       <label>
                         Hindi Category Name{" "}
-                        <span className="field-required-mark">*</span>
+                        <span className="field-required-mark">
+                          *
+                        </span>
                       </label>
 
                       <input
                         type="text"
-                        className={errors.nameHi ? "has-field-error" : ""}
+                        className={
+                          errors.nameHi ? "has-field-error" : ""
+                        }
                         value={form.name.hi}
                         onChange={(event) => {
                           updateLocalizedField(
                             "name",
-
                             "hi",
-
-                            event.target.value,
+                            event.target.value
                           );
 
                           if (errors.nameHi) {
-                            setErrors((prev) => ({ ...prev, nameHi: "" }));
+                            setErrors((previous) => ({
+                              ...previous,
+                              nameHi: "",
+                            }));
                           }
                         }}
                         placeholder="उदाहरण: राष्ट्रीय समाचार"
@@ -882,7 +933,10 @@ const CategoryList = () => {
                       />
 
                       {errors.nameHi && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.nameHi}
                         </span>
                       )}
@@ -893,21 +947,21 @@ const CategoryList = () => {
 
                       <textarea
                         className={
-                          errors.descriptionHi ? "has-field-error" : ""
+                          errors.descriptionHi
+                            ? "has-field-error"
+                            : ""
                         }
                         value={form.description.hi}
                         onChange={(event) => {
                           updateLocalizedField(
                             "description",
-
                             "hi",
-
-                            event.target.value,
+                            event.target.value
                           );
 
                           if (errors.descriptionHi) {
-                            setErrors((prev) => ({
-                              ...prev,
+                            setErrors((previous) => ({
+                              ...previous,
                               descriptionHi: "",
                             }));
                           }
@@ -918,7 +972,10 @@ const CategoryList = () => {
                       />
 
                       {errors.descriptionHi && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.descriptionHi}
                         </span>
                       )}
@@ -949,10 +1006,12 @@ const CategoryList = () => {
                           className="category-upload-label"
                         >
                           <Upload size={22} />
-
-                          <span>Choose image from desktop</span>
-
-                          <small>JPG, PNG, WEBP or AVIF · Maximum 5MB</small>
+                          <span>
+                            Choose image from desktop
+                          </span>
+                          <small>
+                            JPG, PNG, WEBP or AVIF · Maximum 5MB
+                          </small>
                         </label>
                       </div>
 
@@ -966,14 +1025,18 @@ const CategoryList = () => {
 
                           <div>
                             <strong>
-                              {imageFile ? imageFile.name : "Current image"}
+                              {imageFile
+                                ? imageFile.name
+                                : "Current image"}
                             </strong>
 
                             <span>
                               {imageFile
-                                ? `${(imageFile.size / 1024 / 1024).toFixed(
-                                    2,
-                                  )} MB`
+                                ? `${(
+                                    imageFile.size /
+                                    1024 /
+                                    1024
+                                  ).toFixed(2)} MB`
                                 : "Existing category image"}
                             </span>
 
@@ -992,8 +1055,12 @@ const CategoryList = () => {
 
                     <div className="category-form-group">
                       <label>
-                        Display Order{" "}
-                        <span className="field-required-mark">*</span>
+                        Display Order
+                        {!editingId && (
+                          <span className="field-optional-mark">
+                            {" "}Optional
+                          </span>
+                        )}
                       </label>
 
                       <input
@@ -1001,26 +1068,43 @@ const CategoryList = () => {
                         min="0"
                         max="10000"
                         step="1"
-                        className={errors.displayOrder ? "has-field-error" : ""}
+                        className={
+                          errors.displayOrder
+                            ? "has-field-error"
+                            : ""
+                        }
                         value={form.displayOrder}
                         onChange={(event) => {
                           setForm((previous) => ({
                             ...previous,
-
                             displayOrder: event.target.value,
                           }));
 
                           if (errors.displayOrder) {
-                            setErrors((prev) => ({
-                              ...prev,
+                            setErrors((previous) => ({
+                              ...previous,
                               displayOrder: "",
                             }));
                           }
                         }}
+                        placeholder={
+                          editingId
+                            ? "Enter display order"
+                            : "Auto (add to end)"
+                        }
                       />
 
+                      {!editingId && (
+                        <small>
+                          Leave blank to add this category at the end.
+                        </small>
+                      )}
+
                       {errors.displayOrder && (
-                        <span className="field-error-text" role="alert">
+                        <span
+                          className="field-error-text"
+                          role="alert"
+                        >
                           {errors.displayOrder}
                         </span>
                       )}
@@ -1060,7 +1144,10 @@ const CategoryList = () => {
         isOpen={confirmModal.isOpen}
         onClose={() =>
           !confirmModal.isLoading &&
-          setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+          setConfirmModal((previous) => ({
+            ...previous,
+            isOpen: false,
+          }))
         }
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}

@@ -1,4 +1,5 @@
 
+const mongoose = require("mongoose");
 const Category = require("../models/Category");
 const Subcategory = require("../models/Subcategory");
 const News = require("../models/News");
@@ -9,7 +10,23 @@ const createError = (message, statusCode = 400) => {
   return error;
 };
 
-const checkSlugAvailability = async (slug, excludeId = null) => {
+const validateDisplayOrder = (order, max) => {
+  if (
+    !Number.isInteger(order) ||
+    order < 0 ||
+    order > max
+  ) {
+    throw createError(
+      `Display order must be between 0 and ${max}`
+    );
+  }
+};
+
+const checkSlugAvailability = async (
+  slug,
+  excludeId = null,
+  session = null
+) => {
   for (const language of ["en", "hi"]) {
     const query = {
       [`slug.${language}`]: slug[language],
@@ -19,7 +36,9 @@ const checkSlugAvailability = async (slug, excludeId = null) => {
       query._id = { $ne: excludeId };
     }
 
-    const existingCategory = await Category.findOne(query).select("_id");
+    const existingCategory = await Category.findOne(query)
+      .select("_id")
+      .session(session);
 
     if (existingCategory) {
       throw createError(
@@ -30,113 +49,178 @@ const checkSlugAvailability = async (slug, excludeId = null) => {
   }
 };
 
-const createCategory = async (data, userId) => {
-  await checkSlugAvailability(data.slug);
+const normalizeCategoryOrders = async (session) => {
+  const categories = await Category.find()
+    .sort({ displayOrder: 1, createdAt: 1, _id: 1 })
+    .session(session)
+    .select("_id displayOrder");
 
-  const category = await Category.create({
-    ...data,
-    createdBy: userId,
-  });
+  const operations = categories
+    .map((category, index) => ({
+      updateOne: {
+        filter: { _id: category._id },
+        update: {
+          $set: { displayOrder: index },
+        },
+      },
+    }));
 
-  return category;
+  if (operations.length) {
+    await Category.bulkWrite(operations, { session });
+  }
+
+  return categories;
 };
 
-// const updateCategory = async (categoryId, data, userId) => {
-//   const category = await Category.findById(categoryId);
+const createCategory = async (data, userId) => {
+  const session = await mongoose.startSession();
 
-//   if (!category) {
-//     throw createError("Category not found", 404);
-//   }
+  try {
+    let createdCategory;
 
-//   if (data.slug) {
-//     await checkSlugAvailability(data.slug, categoryId);
-//   }
+    await session.withTransaction(async () => {
+      await checkSlugAvailability(data.slug, null, session);
 
-//   if (data.name) {
-//     category.name = {
-//       ...category.name.toObject(),
-//       ...data.name,
-//     };
-//   }
+      const categories = await normalizeCategoryOrders(session);
+      const displayOrder =
+        data.displayOrder ?? categories.length;
 
-//   if (data.slug) {
-//     category.slug = {
-//       ...category.slug.toObject(),
-//       ...data.slug,
-//     };
-//   }
+      validateDisplayOrder(displayOrder, categories.length);
 
-//   if (data.description) {
-//     category.description = {
-//       ...category.description.toObject(),
-//       ...data.description,
-//     };
-//   }
+      await Category.updateMany(
+        { displayOrder: { $gte: displayOrder } },
+        { $inc: { displayOrder: 1 } },
+        { session }
+      );
 
-//   if (data.image !== undefined) {
-//     category.image = data.image;
-//   }
+      const [category] = await Category.create(
+        [
+          {
+            ...data,
+            displayOrder,
+            createdBy: userId,
+          },
+        ],
+        { session }
+      );
 
-//   if (data.displayOrder !== undefined) {
-//     category.displayOrder = data.displayOrder;
-//   }
+      createdCategory = category;
+    });
 
-//   category.updatedBy = userId;
-
-//   await category.save();
-
-//   return category;
-// };
-
+    return createdCategory;
+  } finally {
+    await session.endSession();
+  }
+};
 
 const updateCategory = async (categoryId, data, userId) => {
-  const category = await Category.findById(categoryId);
+  const session = await mongoose.startSession();
 
-  if (!category) {
-    throw createError("Category not found", 404);
+  try {
+    let updatedCategory;
+
+    await session.withTransaction(async () => {
+      if (!mongoose.isValidObjectId(categoryId)) {
+        throw createError("Invalid category ID", 400);
+      }
+
+      await normalizeCategoryOrders(session);
+
+      const category = await Category.findById(categoryId).session(session);
+
+      if (!category) {
+        throw createError("Category not found", 404);
+      }
+
+      if (data.slug) {
+        await checkSlugAvailability(data.slug, categoryId, session);
+      }
+
+      if (data.name?.en !== undefined) {
+        category.set("name.en", data.name.en);
+      }
+
+      if (data.name?.hi !== undefined) {
+        category.set("name.hi", data.name.hi);
+      }
+
+      if (data.slug?.en !== undefined) {
+        category.set("slug.en", data.slug.en);
+      }
+
+      if (data.slug?.hi !== undefined) {
+        category.set("slug.hi", data.slug.hi);
+      }
+
+      if (data.description?.en !== undefined) {
+        category.set("description.en", data.description.en);
+      }
+
+      if (data.description?.hi !== undefined) {
+        category.set("description.hi", data.description.hi);
+      }
+
+      if (data.image !== undefined) {
+        category.image = data.image;
+      }
+
+      if (data.displayOrder !== undefined) {
+        const categories = await Category.find({
+          _id: { $ne: categoryId },
+        })
+          .sort({ displayOrder: 1, createdAt: 1, _id: 1 })
+          .session(session)
+          .select("_id displayOrder");
+
+        const oldOrder = category.displayOrder;
+        const newOrder = data.displayOrder;
+
+        validateDisplayOrder(newOrder, categories.length);
+
+        if (newOrder < oldOrder) {
+          await Category.updateMany(
+            {
+              _id: { $ne: categoryId },
+              displayOrder: {
+                $gte: newOrder,
+                $lt: oldOrder,
+              },
+            },
+            {
+              $inc: { displayOrder: 1 },
+            },
+            { session }
+          );
+        } else if (newOrder > oldOrder) {
+          await Category.updateMany(
+            {
+              _id: { $ne: categoryId },
+              displayOrder: {
+                $gt: oldOrder,
+                $lte: newOrder,
+              },
+            },
+            {
+              $inc: { displayOrder: -1 },
+            },
+            { session }
+          );
+        }
+
+        category.displayOrder = newOrder;
+      }
+
+      category.updatedBy = userId;
+
+      await category.save({ session });
+
+      updatedCategory = category;
+    });
+
+    return updatedCategory;
+  } finally {
+    await session.endSession();
   }
-
-  if (data.slug) {
-    await checkSlugAvailability(data.slug, categoryId);
-  }
-
-  if (data.name?.en !== undefined) {
-    category.set("name.en", data.name.en);
-  }
-
-  if (data.name?.hi !== undefined) {
-    category.set("name.hi", data.name.hi);
-  }
-
-  if (data.slug?.en !== undefined) {
-    category.set("slug.en", data.slug.en);
-  }
-
-  if (data.slug?.hi !== undefined) {
-    category.set("slug.hi", data.slug.hi);
-  }
-
-  if (data.description?.en !== undefined) {
-    category.set("description.en", data.description.en);
-  }
-
-  if (data.description?.hi !== undefined) {
-    category.set("description.hi", data.description.hi);
-  }
-
-  if (data.image !== undefined) {
-    category.image = data.image;
-  }
-
-  if (data.displayOrder !== undefined) {
-    category.displayOrder = data.displayOrder;
-  }
-
-  category.updatedBy = userId;
-
-  await category.save();
-
-  return category;
 };
 
 const getAdminCategories = async ({
@@ -151,7 +235,9 @@ const getAdminCategories = async ({
   if (status === "inactive") filter.isActive = false;
 
   if (search.trim()) {
-    const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedSearch = search
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     filter.$or = [
       { "name.en": { $regex: escapedSearch, $options: "i" } },
@@ -164,9 +250,10 @@ const getAdminCategories = async ({
   const [categories, total] = await Promise.all([
     Category.find(filter)
       .populate("createdBy", "name email")
-      .sort({ displayOrder: 1, createdAt: -1 })
+      .sort({ displayOrder: 1, createdAt: 1, _id: 1 })
       .skip(skip)
       .limit(limit),
+
     Category.countDocuments(filter),
   ]);
 
@@ -184,11 +271,15 @@ const getAdminCategories = async ({
 const getPublicCategories = async () => {
   return Category.find({ isActive: true })
     .select("name slug description image displayOrder")
-    .sort({ displayOrder: 1, createdAt: -1 })
+    .sort({ displayOrder: 1, createdAt: 1, _id: 1 })
     .lean();
 };
 
 const getCategoryById = async (categoryId) => {
+  if (!mongoose.isValidObjectId(categoryId)) {
+    throw createError("Invalid category ID", 400);
+  }
+
   const category = await Category.findById(categoryId);
 
   if (!category) {
@@ -199,6 +290,10 @@ const getCategoryById = async (categoryId) => {
 };
 
 const updateCategoryStatus = async (categoryId, isActive, userId) => {
+  if (!mongoose.isValidObjectId(categoryId)) {
+    throw createError("Invalid category ID", 400);
+  }
+
   const category = await Category.findByIdAndUpdate(
     categoryId,
     {
@@ -221,27 +316,57 @@ const updateCategoryStatus = async (categoryId, isActive, userId) => {
 };
 
 const deleteCategory = async (categoryId) => {
-  const category = await Category.findById(categoryId);
+  const session = await mongoose.startSession();
 
-  if (!category) {
-    throw createError("Category not found", 404);
+  try {
+    let result;
+
+    await session.withTransaction(async () => {
+      if (!mongoose.isValidObjectId(categoryId)) {
+        throw createError("Invalid category ID", 400);
+      }
+
+      await normalizeCategoryOrders(session);
+
+      const category = await Category.findById(categoryId).session(session);
+
+      if (!category) {
+        throw createError("Category not found", 404);
+      }
+
+      const [subcategoryExists, newsExists] = await Promise.all([
+        Subcategory.exists({ category: categoryId }).session(session),
+        News.exists({ category: categoryId }).session(session),
+      ]);
+
+      if (subcategoryExists || newsExists) {
+        throw createError(
+          "Cannot delete this category because it has associated subcategories or news. Deactivate it instead.",
+          409
+        );
+      }
+
+      const deletedOrder = category.displayOrder;
+
+      await category.deleteOne({ session });
+
+      await Category.updateMany(
+        {
+          displayOrder: { $gt: deletedOrder },
+        },
+        {
+          $inc: { displayOrder: -1 },
+        },
+        { session }
+      );
+
+      result = { message: "Category deleted successfully" };
+    });
+
+    return result;
+  } finally {
+    await session.endSession();
   }
-
-  const [subcategoryExists, newsExists] = await Promise.all([
-    Subcategory.exists({ category: categoryId }),
-    News.exists({ category: categoryId }),
-  ]);
-
-  if (subcategoryExists || newsExists) {
-    throw createError(
-      "Cannot delete this category because it has associated subcategories or news. Deactivate it instead.",
-      409
-    );
-  }
-
-  await category.deleteOne();
-
-  return { message: "Category deleted successfully" };
 };
 
 module.exports = {
